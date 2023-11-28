@@ -1,0 +1,171 @@
+body {
+  text-align: center;
+  background: linear-gradient(#c0cccb, #89918f);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: black;
+  font-family: sans-serif;
+}
+
+a {
+  text-decoration: none;
+}
+
+.btn {
+  border-radius: 100px;
+}
+
+img {
+  width: 200px;
+  height: 200px;
+}
+
+nav {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #B9BBC1;
+  margin: auto;
+  width: 100%;
+  position: relative;
+}
+
+.nav {
+  float: left;
+  display: flex;
+  color: darkslategray;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+a:hover {
+  background-color: lightseagreen;
+  color: white;
+}
+
+#today-section {
+  text-align: center;
+}
+
+#today-title {
+  /* If "Today's Meals" is an h1 or another element, give it an ID of today-title */
+  font-size: 24px; /* Adjust font size as needed */
+  margin-bottom: 20px; /* Space between title and meal boxes */
+}
+
+.meal-box {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: calc(33.333% - 40px); /* Subtracting twice the gap to maintain even spacing */
+  box-sizing: border-box; /* To ensure padding doesn't affect the width */
+}
+
+#quick-actions-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.quick-action-btn {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px 10px;
+  background-color: #B9BBC1;
+  cursor: pointer;
+  transition: 0.3s;
+  margin-bottom: 10px;
+}
+
+.quick-action-btn:hover {
+  background-color: #A9A9A9;
+}
+
+#recipeFrame, #myRecipesColumn, #myShoppingListColumn, #bmiFrame, #createRecipesFrame {
+  display: inline-block;
+  margin: 10px;
+  width: 500px;
+  text-align: center;
+  background-color: #B9BBC1;
+}
+
+#recipeInnerFrameTop, #recipeInnerFrameBottomIngredients {
+  width: auto;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+#recipeInnerFrameInstructions, #recipeInnerFrameBottomInstructions {
+  clear: both;
+  width: 410px;
+  font-size: 15px;
+  padding: 20px;
+  white-space: pre-wrap;
+  margin-top: 10px;
+  text-align: left;
+}
+
+#recipeInnerFrameTopImg {
+  padding: 10px;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 30px;
+}
+
+#recipeInnerFrameTopName {
+   font-size: 32px;
+   font-weight: 900;
+   padding-top: 10px;
+   padding-bottom: 10px;
+   box-sizing: border-box;
+   flex-grow: 1;
+}
+
+.btn-edit {
+  background-color: #A9A9A9;
+  border: none;
+  color: black;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-edit:hover {
+  background-color: #96999B;
+}
+
+#main-container {
+}
+
+#title {
+    text-align: center;
+}
+
+#top-section {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    border: 1px solid blue;
+}
+
+#today-section, #quick-actions-section {
+    box-sizing: border-box;
+    padding: 20px;
+    border: 1px solid green;
+}
+
+#week-section, #nutrition-section {
+    margin: 20px 0;
+    border: 1px solid purple;
+}
+
+#bottom-section {
+    text-align: center;
+    border: 1px solid darkcyan;
+}

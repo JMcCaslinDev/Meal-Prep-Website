@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+<link href="/css/style.css" rel="stylesheet">
+  <title> Lab 8: Admin Section </title>
+</head>
+<body>
+
+  <h1> Update Author </h1>
+  <br>
+  <%- include("partials/navbar.ejs") %>
+
+  <form action="/updateAuthor" method="POST">
+
+    First Name:
+    <input type="text" name="firstName" 
+      value="<%=authorInfo[0].firstName%>">
+    <br>
+    Last Name:
+    <input type="text" name="lastName"
+      value="<%=authorInfo[0].lastName%>">
+    <br>
+    Bio:
+    <textarea name="bio"><%=authorInfo[0].biography%>
+    </textarea><br>
+
+    Date of birth:
+    <input name="dob" type="date" value="<%=authorInfo[0].ISOdate%>">
+    <br><br>
+    Date of Death:
+    <input name="dod" type="date" value="<%=authorInfo[0].ISOdod%>">
+    <br><br>
+    Sex<br>
+    <label name="sex"><input
+
+             <% if ( authorInfo[0].sex == 'F' ) { %>
+               
+              checked 
+             
+             <% }  %>
+               
+             type="radio" name="sex" value="F"> Female </label> <br>
+    <label><input 
+             
+             <%=   ( authorInfo[0].sex == 'M' )?"checked":""  %>
+             
+             type="radio" name="sex" value="M"> Male </label>   
+               <br><br>
+    Profession:
+      <input type="text" name ="profession"value="<%=authorInfo[0].profession%>">
+    <br><br>
+    Country:
+      <input type="text" name="country" value="<%=authorInfo[0].country%>">
+    <br><br>
+    Portrait:
+        <br><br>
+        <img name="portrait" src="<%=authorInfo[0].portrait%>">
+        <br><br>
+        <input type="text" name="userPortrait" value="<%=authorInfo[0].portrait%>">
+               
+    <br><br>
+
+    <input type="hidden" name="authorId" 
+      value="<%=authorInfo[0].authorId%>">
+    
+    <button class="btn btn-light"> Update Author</button>
+    
+  </form>
+
+  
+</body>
+</html>

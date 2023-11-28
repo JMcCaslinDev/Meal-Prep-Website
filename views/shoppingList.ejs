@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link href="/css/style.css" rel="stylesheet">
+    <title> Shopping List </title>
+  
+    <style>
+        .list-group-item {
+          list-style-type: none;
+          background-color: #B9BBC1;
+          border: 1px solid white;
+          border-radius: 100px;
+          cursor: pointer;
+          width: fit-content;
+          padding: 10px 20px;
+      }
+
+
+        .list-group-item:hover {
+            background-color: #9fa2a9;
+        }
+
+        .card {
+            width: fit-content;
+            margin: auto;
+            border: none;
+        }
+
+        .strikethrough {
+            text-decoration: line-through;
+        }
+    </style>
+  
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+
+<body>
+    <%- include("partials/navbar.ejs") %>
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">Shopping List</h1>
+        <hr>
+        <div class="mt-4">
+            <% for(let i = 0; i < Object.keys(data).length; i++) {
+                let ingredient = Object.keys(data)[i]; %>
+            <div class="card my-2">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center <%= data[ingredient].checked ? 'strikethrough' : '' %>">
+                        <div class="form-check clickable-area">
+                            <input class="form-check-input" type="checkbox" name="ingredients[<%= ingredient %>]"
+                                id="checkbox_<%= i %>" value="<%= data[ingredient].quantity %>"
+                                data-shoppinglistid="<%= data[ingredient].shoppingListId %>" <%= data[ingredient].checked ? 'checked' : '' %>>
+                            <%= data[ingredient].quantity %> <%= ingredient %>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <% } %>
+        </div>
+    </div>
+
+    <script>
+$(document).ready(function () {
+    $('.list-group-item').click(function (e) {
+        if (!$(e.target).is("input[type='checkbox']")) { // Skip if the checkbox itself was clicked
+            let checkbox = $(this).find("input[type='checkbox']");
+            checkbox.prop("checked", !checkbox.prop("checked")).change(); // Trigger the change event after updating the checkbox
+        }
+    });
+
+    $('.form-check-input').change(function () {
+        let shoppingListId = $(this).data('shoppinglistid');
+        let listItem = $(this).closest('.list-group-item');
+        let isChecked = this.checked;
+
+        // Check or uncheck the item
+        $.ajax({
+            type: 'POST',
+            url: '/checkOffItem',
+            data: { shoppingListId: shoppingListId, checked: isChecked },
+            success: function (response) {
+                listItem.toggleClass('strikethrough', isChecked);
+            },
+            error: function (response) {
+                alert('An error occurred while updating the ingredient status');
+            }
+        });
+    });
+});
+</script>
+
+
+</body>
+</html>

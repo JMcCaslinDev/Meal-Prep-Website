@@ -1,0 +1,29 @@
+{
+  "name": "nodejs",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^18.0.6",
+    "async-mutex": "^0.4.0",
+    "axios": "^1.2.0",
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.2",
+    "ejs": "^3.1.8",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "moment-timezone": "^0.5.43",
+    "mysql": "^2.18.1",
+    "node-fetch": "^3.2.6",
+    "sessionstorage": "^0.1.0",
+    "uuid": "^9.0.0"
+  },
+  "description": ""
+}

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+<link href="/css/style.css" rel="stylesheet">
+  <title> My Meal Prep CST336 Final Project </title>
+</head>
+  
+<body>
+ <%- include("partials/navbar.ejs") %>
+        <br>
+        <h2>Create a Recipe</h2>
+     <br>
+     <span id="addRecipeError"></span><br>
+   <div id=createRecipesFrame>
+     <form id="createRecipeForm" action="/recipe" method="POST">
+         <br>
+         Recipe Image:
+              <input type="text" id="foodPic" name="foodPic" class="border-light rounded" placeholder="Food Image">
+         <br><br>
+         Recipe Name:
+         <input type="text" id="recipeName" name="recipeName" class="border-light rounded" placeholder="Recipe Name">
+         <br><br>
+         Ingredients:
+         <textarea class="border-light rounded" id ="ingredients"name="ingredients" placeholder="Enter Ingredients"></textarea>
+         <BR><br>
+         Instructions:
+         <textarea class="border-light rounded" id="instructions"name="instructions" placeholder="Enter Instructions"></textarea>
+         <br><br>
+         <button id="addRecipe" class="btn btn-light"> Add Recipe!</button>
+         <br><br><br>
+     </form>
+   </div>
+ <script src="/js/script.js"></script>
+</body>
+</html>
