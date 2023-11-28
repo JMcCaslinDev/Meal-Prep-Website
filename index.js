@@ -7,7 +7,8 @@ import { Mutex } from 'async-mutex';
 import { parseIngredients } from './public/js/ingredientParser.js';
 import { v4 as uuidv4 } from 'uuid';
 import moment from 'moment-timezone';
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 const pool = dbConnection();

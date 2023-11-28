@@ -46,14 +46,13 @@ body {
   }
   
   #today-section {
-    text-align: center;
+    text-align: center; /* Center the title text */
   }
   
   #today-title {
-    /* If "Today's Meals" is an h1 or another element, give it an ID of today-title */
-    font-size: 24px; /* Adjust font size as needed */
-    margin-bottom: 20px; /* Space between title and meal boxes */
+    margin-bottom: 20px; /* Add space between title and boxes */
   }
+  
   
   .meal-box {
     border: 1px solid #ccc;
@@ -63,10 +62,18 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: calc(33.333% - 40px); /* Subtracting twice the gap to maintain even spacing */
-    box-sizing: border-box; /* To ensure padding doesn't affect the width */
+    /* width: calc(33.333% - 40px); This might be too big, try using a smaller percentage or `flex: 1` */
+    flex: 1; /* This allows the boxes to grow and take up equal space */
+    max-width: 300px; /* You can set a max-width to prevent the boxes from growing too large */
+    box-sizing: border-box;
   }
   
+.meal-box-container {
+  display: flex;
+  justify-content: center; /* Center meal boxes */
+  gap: 20px; /* Spacing between boxes */
+}
+
   #quick-actions-section {
     display: flex;
     flex-direction: column;
@@ -87,46 +94,7 @@ body {
     background-color: #A9A9A9;
   }
   
-  #recipeFrame, #myRecipesColumn, #myShoppingListColumn, #bmiFrame, #createRecipesFrame {
-    display: inline-block;
-    margin: 10px;
-    width: 500px;
-    text-align: center;
-    background-color: #B9BBC1;
-  }
-  
-  #recipeInnerFrameTop, #recipeInnerFrameBottomIngredients {
-    width: auto;
-    margin: 0 auto;
-    display: flex;
-    flex-wrap: wrap;
-  }
-  
-  #recipeInnerFrameInstructions, #recipeInnerFrameBottomInstructions {
-    clear: both;
-    width: 410px;
-    font-size: 15px;
-    padding: 20px;
-    white-space: pre-wrap;
-    margin-top: 10px;
-    text-align: left;
-  }
-  
-  #recipeInnerFrameTopImg {
-    padding: 10px;
-    object-fit: cover;
-    object-position: center;
-    border-radius: 30px;
-  }
-  
-  #recipeInnerFrameTopName {
-     font-size: 32px;
-     font-weight: 900;
-     padding-top: 10px;
-     padding-bottom: 10px;
-     box-sizing: border-box;
-     flex-grow: 1;
-  }
+
   
   .btn-edit {
     background-color: #A9A9A9;
@@ -140,8 +108,7 @@ body {
     background-color: #96999B;
   }
   
-  #main-container {
-  }
+
   
   #title {
       text-align: center;
