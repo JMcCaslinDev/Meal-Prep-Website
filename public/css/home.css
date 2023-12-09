@@ -5,82 +5,75 @@ body {
     background-attachment: fixed;
     color: black;
     font-family: sans-serif;
-  }
-  
-  a {
+}
+
+a {
     text-decoration: none;
-  }
-  
-  .btn {
+}
+
+.btn {
     border-radius: 100px;
-  }
-  
-  img {
+}
+
+img {
     width: 200px;
     height: 200px;
-  }
-  
-  nav {
+}
+
+nav {
     list-style-type: none;
     margin: 0;
     padding: 0;
     overflow: hidden;
     background-color: #B9BBC1;
-    margin: auto;
     width: 100%;
     position: relative;
-  }
-  
-  .nav {
+}
+
+.nav {
     float: left;
     display: flex;
     color: darkslategray;
     text-align: center;
     padding: 14px 16px;
     text-decoration: none;
-  }
-  
-  a:hover {
+}
+
+a:hover {
     background-color: lightseagreen;
     color: white;
-  }
-  
-  #today-section {
-    text-align: center; /* Center the title text */
-  }
-  
-  #today-title {
-    margin-bottom: 20px; /* Add space between title and boxes */
-  }
-  
-  
-  .meal-box {
+}
+
+#today-section {
+    display: flex;
+    justify-content: space-around; /* This will distribute space around the meal boxes */
+    flex-wrap: wrap; /* Allow the boxes to wrap if needed */
+    margin-bottom: 20px; /* Space between this section and the next */
+}
+
+.meal-box {
     border: 1px solid #ccc;
     border-radius: 5px;
     padding: 10px;
     background-color: white;
-    display: flex;
+    display: inline-flex; /* Align meal boxes side by side */
     flex-direction: column;
     align-items: center;
-    /* width: calc(33.333% - 40px); This might be too big, try using a smaller percentage or `flex: 1` */
-    flex: 1; /* This allows the boxes to grow and take up equal space */
-    max-width: 300px; /* You can set a max-width to prevent the boxes from growing too large */
+    flex: 1; /* Allows the boxes to grow and take up equal space */
+    max-width: 300px; /* Prevents the boxes from growing too large */
     box-sizing: border-box;
-  }
-  
-.meal-box-container {
-  display: flex;
-  justify-content: center; /* Center meal boxes */
-  gap: 20px; /* Spacing between boxes */
+    margin-right: 10px; /* Spacing between meal boxes */
 }
 
-  #quick-actions-section {
+#quick-actions-section {
+    text-align: center; /* Center the buttons */
     display: flex;
     flex-direction: column;
     align-items: center;
-  }
-  
-  .quick-action-btn {
+    margin-bottom: 20px; /* Space between this section and the next */
+}
+
+.quick-action-btn {
     border: 1px solid #ccc;
     border-radius: 5px;
     padding: 5px 10px;
@@ -88,52 +81,40 @@ body {
     cursor: pointer;
     transition: 0.3s;
     margin-bottom: 10px;
-  }
-  
-  .quick-action-btn:hover {
-    background-color: #A9A9A9;
-  }
-  
+}
 
-  
-  .btn-edit {
+.quick-action-btn:hover {
+    background-color: #A9A9A9;
+}
+
+.btn-edit {
     background-color: #A9A9A9;
     border: none;
     color: black;
     cursor: pointer;
     transition: background-color 0.3s;
-  }
-  
-  .btn-edit:hover {
-    background-color: #96999B;
-  }
-  
+}
 
-  
-  #title {
-      text-align: center;
-  }
-  
-  #top-section {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 20px;
-      border: 1px solid blue;
-  }
-  
-  #today-section, #quick-actions-section {
-      box-sizing: border-box;
-      padding: 20px;
-      border: 1px solid green;
-  }
-  
-  #week-section, #nutrition-section {
-      margin: 20px 0;
-      border: 1px solid purple;
-  }
-  
-  #bottom-section {
-      text-align: center;
-      border: 1px solid darkcyan;
-  }
-  
+.btn-edit:hover {
+    background-color: #96999B;
+}
+
+#title {
+    text-align: center;
+}
+
+#top-section, #middle-section, #bottom-section {
+    border: 1px solid blue;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+#week-section, #nutrition-section {
+    text-align: center;
+    border: 1px solid purple;
+    margin: 10px 0;
+}
+
+#today-section, #quick-actions-section {
+    border: 1px solid green;
+}
