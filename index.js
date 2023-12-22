@@ -36,11 +36,11 @@ app.use(express.json());
 app.set('trust proxy', 1) // trust first proxy
 
 app.use(session({
-  secret: process.env.SESSION_SECRET,  // just needs to be the same its an anchor for all sessions
+  secret: process.env.SESSION_SECRET,  // needs to be the same its an anchor for all sessions
   resave: false,
   saveUninitialized: true,
   cookie: {
-    secure: false,  //requires signed not resigned cookies*
+    secure: false,  //if true, requires signed not resigned cookies*
     maxAge: 1000 * 60 * 30 // expires after 30 minutes
   }
 }))
@@ -119,20 +119,16 @@ app.get("/home", isAuth, async function(req, res) {
   console.log("todaysMeals: ", todaysMeals);
 
 
-
-
-
-
   try {
-    // Code to write data to the database
-    var release = await mutex.acquire();  //  mutex lock
-    console.log("Aquiring read mutex lock.");
-    var username = await executeSQL(sql, params);
-    console.log("Data attempts read from database");
-  } finally {
-    release();
-    console.log("Releasing read mutex lock.");
-  }
+      // Code to write data to the database
+      var release = await mutex.acquire();  //  mutex lock
+      console.log("Aquiring read mutex lock.");
+      var username = await executeSQL(sql, params);
+      console.log("Data attempts read from database");
+    } finally {
+      release();
+      console.log("Releasing read mutex lock.");
+    }
   console.log("username: ", username);
 
   //once row is found grab value and pass it on
@@ -142,7 +138,6 @@ app.get("/home", isAuth, async function(req, res) {
   } else {
     console.log("row not found")
   }
-
 
 
   console.log("username: ", username);
@@ -269,12 +264,7 @@ app.post('/signup', async (req, res) => {
 });
 
 
-
-
-
-
-
-
+//  
 app.get('/getRecipe/:recipeId', async (req, res) => {
   const recipeId = req.params.recipeId;
 
@@ -285,7 +275,7 @@ app.get('/getRecipe/:recipeId', async (req, res) => {
 });
 
 
-
+//  displays the users recipes page
 app.get('/recipes', (req, res) => {
 
   res.render('recipes');
@@ -293,7 +283,7 @@ app.get('/recipes', (req, res) => {
 });
 
 
-
+//  create custom recipes and store them in users recipes in database
 app.post('/recipe', async (req, res) => {
   //  Get userId securely given the sessionID
   let userId = await getUserIdFromSessionID(req.sessionID);
@@ -311,6 +301,7 @@ app.post('/recipe', async (req, res) => {
   let parsedIngredientsJSON = JSON.stringify(parsedIngredients);
 
   console.log(parsedIngredientsJSON);
+  
 
 
   sql = `INSERT INTO recipes
@@ -337,10 +328,10 @@ app.get('/recipeResults', async (req, res) => {
 });
 
 
-
-
+//TODO Fix me not working / add recipe to my recieps from search
+//  favorite recipes from recipe search and add it to users database of recipes as a favorited recipe maybe need new table
 app.post('/fav', async (req, res) => {
-  //TODO Fix me not working / add recipe to my recieps from search
+ 
 
   //  Get userId securely given the sessionID
   let userId = await getUserIdFromSessionID(req.sessionID);
@@ -352,10 +343,7 @@ app.post('/fav', async (req, res) => {
 });
 
 
-
-
-
-
+//  get the weeks bound for certain dates e.g. based on a date, which week is it 0 - 52?
 function getWeekBounds(date) {
   console.log("\nEntered getWeekBounds\n");
 
@@ -377,9 +365,7 @@ function getWeekBounds(date) {
 }
 
 
-
-
-
+//  displays calendar page with databased saved selections by querying users current database selected meals
 app.get('/calendar', async (req, res) => {
   console.log("\nEntered calendar route \n");
 
@@ -440,10 +426,7 @@ app.get('/calendar', async (req, res) => {
 });
 
 
-
-
-
-
+//  update weeks meal prep selections based on selected dropdowns in calendar page
 app.post('/weekRecipes', async (req, res) => {
   console.log("Inside /weekRecipes POST route");
 
@@ -511,9 +494,7 @@ app.post('/weekRecipes', async (req, res) => {
 });
 
 
-
-
-
+//  update shopping list database
 async function updateShoppingList(userId, startDate, endDate) {
   try {
     console.log("Inside updateShoppingList function");
@@ -581,9 +562,7 @@ async function updateShoppingList(userId, startDate, endDate) {
 }
 
 
-
-
-
+//  display shopping list page info
 app.get("/shoppingList", async function(req, res) {
   let userId = await getUserIdFromSessionID(req.sessionID);
   console.log("User ID:", userId);
@@ -626,8 +605,7 @@ app.get("/shoppingList", async function(req, res) {
 });
 
 
-
-
+//  check off shopping list items functionality
 app.post("/checkOffItem", async function(req, res) {
   let userId = await getUserIdFromSessionID(req.sessionID);
   console.log("User ID:", userId);
@@ -685,9 +663,7 @@ app.post("/checkOffItem", async function(req, res) {
 });
 
 
-
-
-
+//  display fridge page on frontend
 app.get("/fridge", async function(req, res) {
   let userId = await getUserIdFromSessionID(req.sessionID);
   console.log("User ID:", userId);
@@ -707,9 +683,7 @@ app.get("/fridge", async function(req, res) {
 });
 
 
-
-
-
+//  update fridge items based on database queries
 app.post("/updateFridgeItem", async function(req, res) {
   try {
     let userId = await getUserIdFromSessionID(req.sessionID);
@@ -790,15 +764,14 @@ app.post("/updateFridgeItem", async function(req, res) {
 
 
 
-
-
+//  create recipes route (unsure what this does currently or if its implemented even)
 app.get('/createRecipes', (req, res) => {
 
   res.render('createRecipes');
 });
 
 
-
+//  route for displaying the page info for bmi
 app.get('/bmi', async (req, res) => {
   //pass in user account may not be working user to user :(
   console.log("/bmi route");
@@ -830,8 +803,7 @@ app.get('/bmi', async (req, res) => {
 });
 
 
-
-
+//  update bmi information for user
 app.post('/bmi', async (req, res) => {
 
   let sessionID = req.sessionID; //sets sessionID variable as current session id 
@@ -850,8 +822,7 @@ app.post('/bmi', async (req, res) => {
 });
 
 
-
-// Route for editing a recipe
+//  route for editing a recipe
 app.post('/editRecipe', async (req, res) => {
   let recipeId = req.body.recipeId;
 
@@ -881,7 +852,7 @@ app.post('/editRecipe', async (req, res) => {
 
 
 
-// Route for deleting a recipe
+// route for deleting a recipe
 app.delete('/deleteRecipe', async (req, res) => {
   let recipeId = req.body.recipeId;
   let sessionID = req.sessionID;
@@ -906,11 +877,7 @@ app.delete('/deleteRecipe', async (req, res) => {
 });
 
 
-
-
-
-
-
+//  get users recipes and send data to myRecipes frontend page
 app.get('/myRecipes', async (req, res) => {
   let sessionID = req.sessionID;
   console.log("sessionId: ", sessionID)
@@ -932,16 +899,7 @@ app.get('/myRecipes', async (req, res) => {
 });
 
 
-
-
-
-app.get("/dbTest", async function(req, res) {
-  let sql = "SELECT CURDATE()";
-  let rows = await executeSQL(sql);
-  res.send(rows);
-});//dbTest
-
-
+//  executes all sql queries
 async function executeSQL(sql, params) {
   return new Promise(function(resolve, reject) {
     pool.query(sql, params, function(err, rows, fields) {
@@ -958,7 +916,7 @@ async function executeSQL(sql, params) {
 }
 
 
-
+//  validate user authorization with database query
 async function isAuth(req, res, next) {
   console.log("Entered isAuth function");
 
@@ -979,7 +937,15 @@ async function isAuth(req, res, next) {
 }
 
 
-//values in red must be updated
+//  test database connection with current date query
+app.get("/dbTest", async function(req, res) {
+  let sql = "SELECT CURDATE()";
+  let rows = await executeSQL(sql);
+  res.send(rows);
+});
+
+
+//  connect database
 function dbConnection() {
 
   const pool = mysql.createPool({
@@ -993,22 +959,10 @@ function dbConnection() {
 
   return pool;
 
-} //dbConnection
+}
 
-//start server
+
+//  start server
 app.listen(3000, () => {
   console.log("Expresss server running...")
 })
-
-
-
-
-// pull recipe row from database recipes based on recipeId
-// sql = `SELECT *
-//          FROM recipes
-//          WHERE recipeId = ?`;
-// let data = await executeSQL(sql, [current]); data = data;
-
-
-
-// api to use to search recipes:https://webknox-recipes.p.rapidapi.com/recipes/search
