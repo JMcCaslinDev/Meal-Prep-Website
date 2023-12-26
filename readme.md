@@ -29,3 +29,6 @@ Meal Prep
 - Add functionality to homepage todays meals.
 - Add search page from recipes made by admin and users in the search
 - incorporate old search from api into a search based system that appear also in the search result for keywords. (store these as admin recipes?)
+
+
+    Next add ingredients tab and page similiar to custom recipes page include a button to add new ingredient and a button to search the public database of ingredients not first priority. 

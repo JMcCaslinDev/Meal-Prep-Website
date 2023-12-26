@@ -40,7 +40,7 @@ app.use(session({
   resave: false,
   saveUninitialized: true,
   cookie: {
-    secure: false,  //if true, requires signed not resigned cookies*
+    secure: false,  //if true, requires signed not resigned cookies if using local host must be false
     maxAge: 1000 * 60 * 30 // expires after 30 minutes
   }
 }))
@@ -820,6 +820,56 @@ app.post('/bmi', async (req, res) => {
   alert("Clicked Save");
   res.redirect('bmi');
 });
+
+
+// Route for the Ingredients page
+app.get('/ingredients', isAuth, async function(req, res) {
+  try {
+    // Get the user ID from the session
+    let userId = await getUserIdFromSessionID(req.sessionID);
+    console.log("User ID for Ingredients Page:", userId);
+
+    // Fetch the user's ingredients from the database
+    let sql = `SELECT * FROM ingredients WHERE userId = ?`;
+    let userIngredients = await executeSQL(sql, [userId]);
+
+    // Render the ingredients page with the fetched data
+    res.render('ingredients',  { userId: userId , userIngredients: userIngredients } );
+  } catch (error) {
+    console.error("Error loading ingredients page:", error);
+    res.send("An error occurred while loading the ingredients page.");
+  }
+});
+
+
+app.get('/addingredients', isAuth, async (req, res) => {
+  try {
+      // Here you can also fetch any necessary data to include in your form, if needed
+      res.render('addIngredients');
+  } catch (error) {
+      console.error("Error loading the add ingredients page:", error);
+      res.send("An error occurred while loading the add ingredients page.");
+  }
+});
+
+
+app.post('/addIngredient', isAuth, async (req, res) => {
+  let userId = await getUserIdFromSessionID(req.sessionID);
+  let { name, calories, quantity } = req.body; // Add other fields as needed
+
+  let sql = `INSERT INTO ingredients (userId, name, calories) VALUES (?, ?, ?)`; // Adjust the SQL to match your schema
+  let params = [userId, name, calories, quantity]; // Add other fields as needed
+
+  try {
+      await executeSQL(sql, params);
+      console.log(`Ingredient added by user ${userId}:`, { name, calories, quantity }); // Log more fields as needed
+      res.redirect('/ingredients'); // Redirect to the ingredients list page, or wherever appropriate
+  } catch (error) {
+      console.error("Error adding ingredient:", error);
+      res.send("An error occurred while adding the ingredient.");
+  }
+});
+
 
 
 //  route for editing a recipe
