@@ -283,6 +283,7 @@ app.get('/recipes', (req, res) => {
 });
 
 
+
 //  create custom recipes and store them in users recipes in database
 app.post('/recipe', async (req, res) => {
   //  Get userId securely given the sessionID
@@ -301,17 +302,16 @@ app.post('/recipe', async (req, res) => {
   let parsedIngredientsJSON = JSON.stringify(parsedIngredients);
 
   console.log(parsedIngredientsJSON);
-  
 
-
-  sql = `INSERT INTO recipes
-             (recipeName,ingredientList, instructions, imageLink, userId, parsedIngredients)
-                 VALUES
-                 (?, ?, ?, ?, ?, ?)`;
+  // Define the SQL query here
+  let sql = `INSERT INTO recipes
+             (recipeName, ingredientList, instructions, imageLink, userId, parsedIngredients)
+             VALUES (?, ?, ?, ?, ?, ?)`;
   let params = [recipeName, ingredients, instructions, fpic, userId, parsedIngredientsJSON];
   await executeSQL(sql, params);
   res.redirect('/myRecipes');
 });
+
 
 
 //url is fixed and is working
