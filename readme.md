@@ -1,18 +1,57 @@
-Meal Prep
 
-1) User accounts database
+# Meal Prep and Health Tracker Application
 
-- Shopping List Route Button info stored in user database
+## Overview
+This application is a comprehensive web-based tool designed for meal preparation and health tracking. It enables users to effectively manage ingredients, recipes, meal calendars, and monitor nutritional intake, all while providing a user-friendly interface to track and maintain health goals.
 
-- Plan Week of meals thru choosing recipes and time slot for recipe all stored in user database
+## Features
 
-2) recipe database to store recipes and what ingredients they need, calories, etc. For use in plan week selection and creating weekly shopping list
+### Current Features
+- **User Authentication**: Secure login and signup functionalities.
+- **Meal Calendar**: Plan and view meals by current week only.
+- **Cook Meals Page**: View and update fridge inventory and daily macros and calories. (Not created yet)
+- **Fridge Management**: Virtual representation of user's fridge with detailed item information.
+- **Shopping List**: Dynamic list based on meal calendar for efficient shopping planning.
+- **Ingredient Management**: Add and track ingredients with nutritional information.
+- **Recipe Creation**: Users can create, save, and manage recipes.
 
-- Fridge Inventory updated from meal selection thru the ingredients database.
+### Frontend Components
+- Developed using EJS templates.
+- Key pages include home.ejs, addingredients.ejs, createrecipes.ejs.
+- Responsive design for various devices and intuitive user interaction.
 
-3) ingredients database will have a list of what an ingredients name is description and calories etc.
-4) Fridge database gets entries when a user adds an ingredient from ingredient database to their shopping list so its added to their fridge. User id with ingredient object from other database.
+### Backend Components
+- Built on Node.js with Express as the web server.
+- MySQL for database management.
+- Efficient handling of asynchronous database operations using async-mutex.
 
-- ingredients and recieps buttons maybe the same buttons maybe seperate lists all ingreidents in database or recipes respectively.
+## Technical Aspects
+- **index.js**: Central entry point, managing server startup, routes, and middleware.
+- **Database Schema**: Structured tables for accounts, meals, ingredients, shopping lists, etc.
+- **Challenges**: Ongoing improvements for accurate macro recording and recipe creation functionalities.
 
+## Installation
+[Instructions on how to install and setup the application.]
 
+## Usage
+[Guide on how to use the application, possibly with screenshots or GIFs demonstrating key features.]
+
+## Planned Features and Next Steps
+1. **Macros and Calories Integration**: Update the application to ensure that macros and calories are properly recorded for ingredients and recipes. This involves adjusting the backend `POST` request handling to include all necessary fields and ensure that the MySQL database is updated accordingly.
+
+2. **Meal Calendar Enhancement**: Implement the ability to select meals for different weeks or specific dates and automate the meal calendar based on calorie and macro requirements.
+
+3. **Cook Meals Page Functionality**: Finalize the cook meals page to include dynamic updating of databases based on the recipes being cooked and eaten.
+
+4. **Shopping List and Fridge Improvements**: Ensure that the shopping list and fridge are fully dynamic, allowing for real-time updates and editing capabilities through modals or in-line editing.
+
+5. **User Interface Refinement**: Continue enhancing the aesthetic and functional aspects of the user interface, focusing on improving user experience across all pages. This involves streamlining navigation, ensuring responsive design for various devices, and integrating intuitive design elements that facilitate user interaction with the application's features.
+
+## Contributing
+[Guidelines for contributing to the project, including code style, commit message format, etc.] Adding later
+
+## License
+No License yet private development only for now.
+
+## Contact
+https://github.com/JMcCaslinDev

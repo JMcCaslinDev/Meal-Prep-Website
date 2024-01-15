@@ -14,48 +14,48 @@
 
     <div class="container mt-4" id="main-container">
         <h1 id="title"><strong>Weekly Meal Prep</strong></h1>
-      
         Welcome <%= username %>!
-          
+    
+        <!-- Top Section for Today's Meals -->
         <div class="row" id="top-section">
-            <!-- Left Column: Today's Meals -->
-            <div class="col-md-6" id="today-section">
+            <div class="col-12" id="today-section">
                 <h2>Today's Meals</h2>
-                <!-- Insert code to display today's meals -->
+                <!-- Meal Boxes Here -->
                 <div class="meal-box">Breakfast: Eggs and Toast</div>
                 <div class="meal-box">Lunch: Chicken Salad</div>
                 <div class="meal-box">Dinner: Grilled Steak</div>
             </div>
-        
-            <!-- Right Column: Quick Actions -->
-            <div class="col-md-6" id="quick-actions-section">
+        </div>
+    
+        <!-- Middle Section for Quick Actions -->
+        <div class="row" id="middle-section">
+            <div class="col-12" id="quick-actions-section">
                 <h2>Quick Actions</h2>
-                <!-- Insert buttons for quick actions -->
+                <!-- Quick Action Buttons Here -->
                 <button class="btn btn-primary quick-action-btn">Add Meal</button>
                 <button class="btn btn-warning quick-action-btn">Update Meal</button>
                 <button class="btn btn-danger quick-action-btn">Delete Meal</button>
             </div>
         </div>
-              
+    
+        <!-- Bottom Section for Week's Meals and Nutritional Overview -->
         <div class="row" id="bottom-section">
-            <!-- Week's Meals -->
-            <div class="col-md-12" id="week-section">
+            <div class="col-12" id="week-section">
                 <h2>Week's Meals</h2>
-                <!-- Sample week's meals box -->
+                <!-- Week's Meals Here -->
                 <div class="meal-box">Monday: Spaghetti Bolognese</div>
-                <!-- ... Continue similar boxes for each day or create a table -->
+                <!-- More meals... -->
             </div>
-  
-            <!-- Nutritional Overview -->
-            <div class="col-md-12" id="nutrition-section">
+            <div class="col-12" id="nutrition-section">
                 <h2>Nutritional Overview</h2>
-                <!-- Sample nutritional info -->
+                <!-- Nutritional Info Here -->
                 <div class="nutrition-box">Calories: 2000 kcal</div>
                 <div class="nutrition-box">Protein: 150g</div>
-                <!-- ... Continue similar boxes for other nutritional information -->
+                <!-- More nutritional info... -->
             </div>
         </div>
     </div>
+    
 </body>
   
 </html>

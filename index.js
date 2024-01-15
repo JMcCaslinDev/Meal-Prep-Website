@@ -7,7 +7,8 @@ import { Mutex } from 'async-mutex';
 import { parseIngredients } from './public/js/ingredientParser.js';
 import { v4 as uuidv4 } from 'uuid';
 import moment from 'moment-timezone';
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 const pool = dbConnection();
@@ -35,19 +36,19 @@ app.use(express.json());
 app.set('trust proxy', 1) // trust first proxy
 
 app.use(session({
-  secret: process.env.SESSION_SECRET,  // just needs to be the same its an anchor for all sessions
+  secret: process.env.SESSION_SECRET,  // needs to be the same its an anchor for all sessions
   resave: false,
   saveUninitialized: true,
   cookie: {
-    secure: false,  //requires signed not resigned cookies*
+    secure: false,  //if true, requires signed not resigned cookies if using local host must be false
     maxAge: 1000 * 60 * 30 // expires after 30 minutes
   }
 }))
 
 
 async function getUserIdFromSessionID(sessionID) {
-  // Execute SQL query to fetch userId from mp_accounts where sessionID matches
-  let sql = `SELECT userId FROM mp_accounts WHERE sessionId = ?`;
+  // Execute SQL query to fetch userId from accounts where sessionID matches
+  let sql = `SELECT userId FROM accounts WHERE sessionId = ?`;
   let result = await executeSQL(sql, [sessionID]);
 
   if (result.length > 0) {
@@ -72,7 +73,7 @@ app.get('/', async (req, res) => {
   console.log("sessionID: ", sessionID)
 
   var params = [sessionID];
-  var sql = `SELECT sessionId FROM mp_accounts WHERE sessionId = ?`;
+  var sql = `SELECT sessionId FROM accounts WHERE sessionId = ?`;
 
 
 
@@ -106,32 +107,28 @@ app.get("/home", isAuth, async function(req, res) {
   console.log("User ID:", userId);
 
   var params = [userId];
-  var sql = `SELECT username FROM mp_accounts WHERE userId = ?`;
+  var sql = `SELECT username FROM accounts WHERE userId = ?`;
 
 
   //  need to grab all of the todays meals for current user 
 
-  var sqlMeals = `SELECT recipeId, timeSlot FROM mp_mealcalendar WHERE userId = ? AND DATE(timeSlot) = STR_TO_DATE('07/31/2023', '%m/%d/%Y')`;
+  var sqlMeals = `SELECT recipeId, timeSlot FROM mealcalendar WHERE userId = ? AND DATE(timeSlot) = STR_TO_DATE('07/31/2023', '%m/%d/%Y')`;
 
   var todaysMeals = await executeSQL(sqlMeals, params);
 
   console.log("todaysMeals: ", todaysMeals);
 
 
-
-
-
-
   try {
-    // Code to write data to the database
-    var release = await mutex.acquire();  //  mutex lock
-    console.log("Aquiring read mutex lock.");
-    var username = await executeSQL(sql, params);
-    console.log("Data attempts read from database");
-  } finally {
-    release();
-    console.log("Releasing read mutex lock.");
-  }
+      // Code to write data to the database
+      var release = await mutex.acquire();  //  mutex lock
+      console.log("Aquiring read mutex lock.");
+      var username = await executeSQL(sql, params);
+      console.log("Data attempts read from database");
+    } finally {
+      release();
+      console.log("Releasing read mutex lock.");
+    }
   console.log("username: ", username);
 
   //once row is found grab value and pass it on
@@ -141,7 +138,6 @@ app.get("/home", isAuth, async function(req, res) {
   } else {
     console.log("row not found")
   }
-
 
 
   console.log("username: ", username);
@@ -162,7 +158,7 @@ app.post('/login', async (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
   let passwordHash = "";
-  let sql = `SELECT password FROM mp_accounts WHERE username = ?`;
+  let sql = `SELECT password FROM accounts WHERE username = ?`;
   let rows = await executeSQL(sql, [username]);
 
   if (rows.length > 0) {
@@ -174,14 +170,14 @@ app.post('/login', async (req, res) => {
   //  if passwords match
   if (match) {
     console.log("Passwords match")
-    sql = `SELECT userId FROM mp_accounts WHERE username = ?`;
+    sql = `SELECT userId FROM accounts WHERE username = ?`;
     const userId = (await executeSQL(sql, [username]))[0].userId;  //works
 
 
     //set session userId    this is not setting the sessionId but instead sets the userId 
     req.session.userId = userId;
 
-    sql = `UPDATE mp_accounts SET sessionId = ?, lastLoginTimestamp = ? WHERE userId = ?`;
+    sql = `UPDATE accounts SET sessionId = ?, lastLoginTimestamp = ? WHERE userId = ?`;
     const timestamp = Date.now() / 1000;  //equivalent to python time.time()
     console.log("req.sessionID:", req.sessionID);
     await executeSQL(sql, [req.sessionID, timestamp, userId]);
@@ -209,7 +205,7 @@ async function returnUniqueUuid() {
   //run until returns
   while (true) {
     let uuid = uuidv4();  //store a new uuid
-    let sql = `SELECT userId FROM mp_accounts WHERE userId = ?`;
+    let sql = `SELECT userId FROM accounts WHERE userId = ?`;
     let checkForUserIdAlreadyInDatabase = await executeSQL(sql, [uuid]);
     console.log("checkForUserIdAlreadyInDatabase: ", checkForUserIdAlreadyInDatabase)
 
@@ -228,7 +224,7 @@ app.post('/signup', async (req, res) => {
     const { username, password } = req.body;
 
     // Check for duplicate username in the database
-    const duplicateUsernameQuery = `SELECT username FROM mp_accounts WHERE username = ?`;
+    const duplicateUsernameQuery = `SELECT username FROM accounts WHERE username = ?`;
     const duplicateUsernameResult = await executeSQL(duplicateUsernameQuery, [username]);
 
     if (duplicateUsernameResult.length > 0) {
@@ -248,12 +244,12 @@ app.post('/signup', async (req, res) => {
       req.session.userId = potentialUserId;
 
       // Insert the new user information into the database
-      const insertUserQuery = `INSERT INTO mp_accounts (username, password, sessionId, userId) VALUES (?, ?, ?, ?)`;
+      const insertUserQuery = `INSERT INTO accounts (username, password, sessionId, userId) VALUES (?, ?, ?, ?)`;
       const insertUserParams = [username, hash, req.sessionID, potentialUserId];
       await executeSQL(insertUserQuery, insertUserParams);
 
       // Update the session ID and last login timestamp
-      const updateSessionQuery = `UPDATE mp_accounts SET sessionId = ?, lastLoginTimestamp = ? WHERE userId = ?`;
+      const updateSessionQuery = `UPDATE accounts SET sessionId = ?, lastLoginTimestamp = ? WHERE userId = ?`;
       const timestamp = Date.now() / 1000;
       await executeSQL(updateSessionQuery, [req.sessionID, timestamp, potentialUserId]);
       res.render('home', { "username": username }); // Redirect to the home page
@@ -268,23 +264,18 @@ app.post('/signup', async (req, res) => {
 });
 
 
-
-
-
-
-
-
+//  
 app.get('/getRecipe/:recipeId', async (req, res) => {
   const recipeId = req.params.recipeId;
 
-  let sql = `SELECT * FROM mp_userrecipes WHERE recipeId = ?`;
+  let sql = `SELECT * FROM recipes WHERE recipeId = ?`;
   let recipeData = await executeSQL(sql, [recipeId]);
 
   res.json(recipeData);
 });
 
 
-
+//  displays the users recipes page
 app.get('/recipes', (req, res) => {
 
   res.render('recipes');
@@ -293,6 +284,7 @@ app.get('/recipes', (req, res) => {
 
 
 
+//  create custom recipes and store them in users recipes in database
 app.post('/recipe', async (req, res) => {
   //  Get userId securely given the sessionID
   let userId = await getUserIdFromSessionID(req.sessionID);
@@ -311,15 +303,15 @@ app.post('/recipe', async (req, res) => {
 
   console.log(parsedIngredientsJSON);
 
-
-  sql = `INSERT INTO mp_userrecipes
-             (recipeName,ingredientList, instructions, imageLink, userId, parsedIngredients)
-                 VALUES
-                 (?, ?, ?, ?, ?, ?)`;
+  // Define the SQL query here
+  let sql = `INSERT INTO recipes
+             (recipeName, ingredientList, instructions, imageLink, userId, parsedIngredients)
+             VALUES (?, ?, ?, ?, ?, ?)`;
   let params = [recipeName, ingredients, instructions, fpic, userId, parsedIngredientsJSON];
   await executeSQL(sql, params);
   res.redirect('/myRecipes');
 });
+
 
 
 //url is fixed and is working
@@ -336,10 +328,10 @@ app.get('/recipeResults', async (req, res) => {
 });
 
 
-
-
+//TODO Fix me not working / add recipe to my recieps from search
+//  favorite recipes from recipe search and add it to users database of recipes as a favorited recipe maybe need new table
 app.post('/fav', async (req, res) => {
-  //TODO Fix me not working / add recipe to my recieps from search
+ 
 
   //  Get userId securely given the sessionID
   let userId = await getUserIdFromSessionID(req.sessionID);
@@ -351,10 +343,7 @@ app.post('/fav', async (req, res) => {
 });
 
 
-
-
-
-
+//  get the weeks bound for certain dates e.g. based on a date, which week is it 0 - 52?
 function getWeekBounds(date) {
   console.log("\nEntered getWeekBounds\n");
 
@@ -376,14 +365,12 @@ function getWeekBounds(date) {
 }
 
 
-
-
-
+//  displays calendar page with databased saved selections by querying users current database selected meals
 app.get('/calendar', async (req, res) => {
   console.log("\nEntered calendar route \n");
 
-  //  Pull all user recipes from mp_userrecipes table
-  let sql = `SELECT * FROM mp_userrecipes`;
+  //  Pull all user recipes from recipes table
+  let sql = `SELECT * FROM recipes`;
   let data = await executeSQL(sql);
 
   //  Get userId securely given the sessionID
@@ -406,7 +393,7 @@ app.get('/calendar', async (req, res) => {
 
   // Fetch all entries for the current week
   sql = `SELECT * 
-         FROM mp_mealCalendar 
+         FROM mealCalendar 
          WHERE userId = ? AND timeSlot BETWEEN ? AND ?`;
   let userCalendarRecipes = await executeSQL(sql, [userId, mondayString, sundayString]);
   console.log("Data for the current week:", userCalendarRecipes);
@@ -439,10 +426,7 @@ app.get('/calendar', async (req, res) => {
 });
 
 
-
-
-
-
+//  update weeks meal prep selections based on selected dropdowns in calendar page
 app.post('/weekRecipes', async (req, res) => {
   console.log("Inside /weekRecipes POST route");
 
@@ -468,7 +452,7 @@ app.post('/weekRecipes', async (req, res) => {
     console.log("weeks_sundayString_utc_formatted: ", sundayString);
 
     // Delete existing recipes in the meal calendar for the current week
-    let sql = `DELETE FROM mp_mealcalendar WHERE userId = ? AND timeSlot BETWEEN ? AND ?`;
+    let sql = `DELETE FROM mealcalendar WHERE userId = ? AND timeSlot BETWEEN ? AND ?`;
     await executeSQL(sql, [userId, mondayString, sundayString]);
 
     // Define the days and meals
@@ -490,7 +474,7 @@ app.post('/weekRecipes', async (req, res) => {
         console.log(`RecipeId for meal ${i}, day ${j}: ${recipeId}`);
 
         if (recipeId && recipeId !== '-1') {  // If a recipe is selected for this meal
-          sql = `INSERT INTO mp_mealcalendar (userId, recipeId, timeSlot) VALUES (?, ?, ?)`;
+          sql = `INSERT INTO mealcalendar (userId, recipeId, timeSlot) VALUES (?, ?, ?)`;
           try {
             let result = await executeSQL(sql, [userId, recipeId, mealTimeUTC.format('YYYY-MM-DD HH:mm:ss')]);
             console.log(`Insertion result for meal ${i}, day ${j}:`, result);
@@ -510,21 +494,19 @@ app.post('/weekRecipes', async (req, res) => {
 });
 
 
-
-
-
+//  update shopping list database
 async function updateShoppingList(userId, startDate, endDate) {
   try {
     console.log("Inside updateShoppingList function");
     console.log("User ID:", userId);
 
     // Fetch meal calendar entries for the specified date range
-    let sql = `SELECT recipeId FROM mp_mealcalendar WHERE userId = ? AND timeSlot BETWEEN ? AND ?`;
+    let sql = `SELECT recipeId FROM mealcalendar WHERE userId = ? AND timeSlot BETWEEN ? AND ?`;
     let calendarRows = await executeSQL(sql, [userId, startDate, endDate]);
 
     // Clear the shopping list for the specified date range
     console.log("Clearing shopping list for date range:", startDate, "to", endDate);
-    sql = `DELETE FROM mp_shoppinglist WHERE userId = ? AND DATE(weekDate) = DATE(?)`;
+    sql = `DELETE FROM shoppinglist WHERE userId = ? AND DATE(weekDate) = DATE(?)`;
     await executeSQL(sql, [userId, startDate]);
 
 
@@ -543,7 +525,7 @@ async function updateShoppingList(userId, startDate, endDate) {
 
     let combinedIngredients = {};
     for (let recipeId in recipeCounts) {
-      sql = `SELECT parsedIngredients FROM mp_userrecipes WHERE userId = ? AND recipeId = ?`;
+      sql = `SELECT parsedIngredients FROM recipes WHERE userId = ? AND recipeId = ?`;
       let recipeRows = await executeSQL(sql, [userId, recipeId]);
       let ingredients = JSON.parse(recipeRows[0].parsedIngredients);
 
@@ -570,7 +552,7 @@ async function updateShoppingList(userId, startDate, endDate) {
     // Insert the aggregated ingredients into the shopping list
     for (let name in combinedIngredients) {
       let { quantity, measurement } = combinedIngredients[name];
-      sql = `INSERT INTO mp_shoppinglist (userId, ingredientName, quantity, measurement, weekDate) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE quantity = VALUES(quantity)`;
+      sql = `INSERT INTO shoppinglist (userId, ingredientName, quantity, measurement, weekDate) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE quantity = VALUES(quantity)`;
       let params = [userId, name, quantity, measurement, startDate]; // Using startDate as the date for the shopping list
       await executeSQL(sql, params);
     }
@@ -580,9 +562,7 @@ async function updateShoppingList(userId, startDate, endDate) {
 }
 
 
-
-
-
+//  display shopping list page info
 app.get("/shoppingList", async function(req, res) {
   let userId = await getUserIdFromSessionID(req.sessionID);
   console.log("User ID:", userId);
@@ -593,9 +573,9 @@ app.get("/shoppingList", async function(req, res) {
     let mondayString = moment.utc(monday).format('YYYY-MM-DD HH:mm:ss');
     let sundayString = moment.utc(sunday).format('YYYY-MM-DD HH:mm:ss');
 
-    // Fetch shopping list from mp_shoppinglist for the current week
+    // Fetch shopping list from shoppinglist for the current week
     let sql = `SELECT shoppingListId, ingredientName as name, quantity, checked
-               FROM mp_shoppinglist 
+               FROM shoppinglist 
                WHERE userId = ? AND DATE(weekDate) BETWEEN DATE(?) AND DATE(?)
               `;
     executeSQL(sql, [userId, mondayString, sundayString])
@@ -625,8 +605,7 @@ app.get("/shoppingList", async function(req, res) {
 });
 
 
-
-
+//  check off shopping list items functionality
 app.post("/checkOffItem", async function(req, res) {
   let userId = await getUserIdFromSessionID(req.sessionID);
   console.log("User ID:", userId);
@@ -640,7 +619,7 @@ app.post("/checkOffItem", async function(req, res) {
 
   if (userId) {
     let sql = `
-      UPDATE mp_shoppinglist 
+      UPDATE shoppinglist 
       SET checked = ? 
       WHERE shoppingListId = ? AND userId = ?
     `;
@@ -648,7 +627,7 @@ app.post("/checkOffItem", async function(req, res) {
     await executeSQL(sql, [checkedValue, shoppingListId, userId]);
 
     // Retrieve the ingredient details from the shopping list
-    sql = `SELECT ingredientName, quantity, measurement FROM mp_shoppinglist WHERE shoppingListId = ?`;
+    sql = `SELECT ingredientName, quantity, measurement FROM shoppinglist WHERE shoppingListId = ?`;
     console.log("Executing SQL:", sql, [shoppingListId]);
     let result = await executeSQL(sql, [shoppingListId]);
 
@@ -663,12 +642,12 @@ app.post("/checkOffItem", async function(req, res) {
 
       if (checkedValue === 1) {
         // Code to add the ingredient to the fridge
-        sql = `INSERT INTO mp_fridge (userId, ingredientName, quantity, unit, shoppingListId, created_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`;
+        sql = `INSERT INTO fridge (userId, ingredientName, quantity, unit, shoppingListId, created_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`;
         console.log("Executing SQL:", sql, [userId, ingredientName, quantity, unit, shoppingListId]);
         await executeSQL(sql, [userId, ingredientName, quantity, unit, shoppingListId]);
       } else {
         // Code to remove the ingredient from the fridge
-        sql = `DELETE FROM mp_fridge WHERE userId = ? AND ingredientName = ? AND shoppingListId = ?`;
+        sql = `DELETE FROM fridge WHERE userId = ? AND ingredientName = ? AND shoppingListId = ?`;
         console.log("Executing SQL:", sql, [userId, ingredientName, shoppingListId]);
         await executeSQL(sql, [userId, ingredientName, shoppingListId]);
       }
@@ -684,16 +663,14 @@ app.post("/checkOffItem", async function(req, res) {
 });
 
 
-
-
-
+//  display fridge page on frontend
 app.get("/fridge", async function(req, res) {
   let userId = await getUserIdFromSessionID(req.sessionID);
   console.log("User ID:", userId);
   if (userId) {
     let sql = `
       SELECT ingredientName, unit, SUM(quantity) as quantity 
-      FROM mp_fridge 
+      FROM fridge 
       WHERE userId = ? AND quantity > 0
       GROUP BY ingredientName, unit
     `;
@@ -706,9 +683,7 @@ app.get("/fridge", async function(req, res) {
 });
 
 
-
-
-
+//  update fridge items based on database queries
 app.post("/updateFridgeItem", async function(req, res) {
   try {
     let userId = await getUserIdFromSessionID(req.sessionID);
@@ -741,7 +716,7 @@ app.post("/updateFridgeItem", async function(req, res) {
     // Fetch the current total quantity of this ingredient for this user
     let result = await executeSQL(`
       SELECT SUM(quantity) AS totalQuantity
-      FROM mp_fridge
+      FROM fridge
       WHERE userId = ? AND ingredientName = ? AND quantity > 0
     `, [userId, ingredientName]);
 
@@ -754,7 +729,7 @@ app.post("/updateFridgeItem", async function(req, res) {
       // Reduce quantity from the oldest entries
       let rowsToUpdate = await executeSQL(`
         SELECT id, quantity
-        FROM mp_fridge
+        FROM fridge
         WHERE userId = ? AND ingredientName = ? AND quantity > 0
         ORDER BY created_at ASC
       `, [userId, ingredientName]);
@@ -765,7 +740,7 @@ app.post("/updateFridgeItem", async function(req, res) {
 
         const reduceBy = Math.min(amountToReduce, row.quantity);
         await executeSQL(`
-          UPDATE mp_fridge
+          UPDATE fridge
           SET quantity = quantity - ?
           WHERE id = ?
         `, [reduceBy, row.id]);
@@ -775,7 +750,7 @@ app.post("/updateFridgeItem", async function(req, res) {
     } else if (difference > 0) {
       // Add a new entry
       await executeSQL(`
-        INSERT INTO mp_fridge (userId, ingredientName, quantity, unit, created_at)
+        INSERT INTO fridge (userId, ingredientName, quantity, unit, created_at)
         VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
       `, [userId, ingredientName, difference, unit]);
     }
@@ -789,21 +764,20 @@ app.post("/updateFridgeItem", async function(req, res) {
 
 
 
-
-
+//  create recipes route (unsure what this does currently or if its implemented even)
 app.get('/createRecipes', (req, res) => {
 
   res.render('createRecipes');
 });
 
 
-
+//  route for displaying the page info for bmi
 app.get('/bmi', async (req, res) => {
   //pass in user account may not be working user to user :(
   console.log("/bmi route");
 
   let sql = `SELECT *
-              FROM mp_accounts
+              FROM accounts
               WHERE sessionId = ?`;
   let params = [req.sessionID]
   console.log("req.sessionID: ", req.sessionID);
@@ -829,8 +803,7 @@ app.get('/bmi', async (req, res) => {
 });
 
 
-
-
+//  update bmi information for user
 app.post('/bmi', async (req, res) => {
 
   let sessionID = req.sessionID; //sets sessionID variable as current session id 
@@ -839,7 +812,7 @@ app.post('/bmi', async (req, res) => {
   let height = req.body.bmiHeightBox;
   let weight = req.body.bmiWeightBox;
 
-  let sql = `UPDATE mp_accounts
+  let sql = `UPDATE accounts
                 SET age=${age}, height=${height}, weight=${weight} 
                 WHERE sessionId = ?`;
   await executeSQL(sql, [sessionID]);
@@ -849,8 +822,57 @@ app.post('/bmi', async (req, res) => {
 });
 
 
+// Route for the Ingredients page
+app.get('/ingredients', isAuth, async function(req, res) {
+  try {
+    // Get the user ID from the session
+    let userId = await getUserIdFromSessionID(req.sessionID);
+    console.log("User ID for Ingredients Page:", userId);
 
-// Route for editing a recipe
+    // Fetch the user's ingredients from the database
+    let sql = `SELECT * FROM ingredients WHERE userId = ?`;
+    let userIngredients = await executeSQL(sql, [userId]);
+
+    // Render the ingredients page with the fetched data
+    res.render('ingredients',  { userId: userId , userIngredients: userIngredients } );
+  } catch (error) {
+    console.error("Error loading ingredients page:", error);
+    res.send("An error occurred while loading the ingredients page.");
+  }
+});
+
+
+app.get('/addingredients', isAuth, async (req, res) => {
+  try {
+      // Here you can also fetch any necessary data to include in your form, if needed
+      res.render('addIngredients');
+  } catch (error) {
+      console.error("Error loading the add ingredients page:", error);
+      res.send("An error occurred while loading the add ingredients page.");
+  }
+});
+
+
+app.post('/addIngredient', isAuth, async (req, res) => {
+  let userId = await getUserIdFromSessionID(req.sessionID);
+  let { name, calories, quantity } = req.body; // Add other fields as needed
+
+  let sql = `INSERT INTO ingredients (userId, name, calories) VALUES (?, ?, ?)`; // Adjust the SQL to match your schema
+  let params = [userId, name, calories, quantity]; // Add other fields as needed
+
+  try {
+      await executeSQL(sql, params);
+      console.log(`Ingredient added by user ${userId}:`, { name, calories, quantity }); // Log more fields as needed
+      res.redirect('/ingredients'); // Redirect to the ingredients list page, or wherever appropriate
+  } catch (error) {
+      console.error("Error adding ingredient:", error);
+      res.send("An error occurred while adding the ingredient.");
+  }
+});
+
+
+
+//  route for editing a recipe
 app.post('/editRecipe', async (req, res) => {
   let recipeId = req.body.recipeId;
 
@@ -865,11 +887,11 @@ app.post('/editRecipe', async (req, res) => {
 
   let sessionID = req.sessionID;
   console.log("sessionId: ", sessionID)
-  let sql = `SELECT userId FROM mp_accounts WHERE sessionId = ?`;
+  let sql = `SELECT userId FROM accounts WHERE sessionId = ?`;
   let result = await executeSQL(sql, [sessionID]);
   let userId = result[0].userId;
 
-  sql = `UPDATE mp_userrecipes SET recipeName = ?, ingredientList = ?, instructions = ?, imageLink = ?, parsedIngredients = ? WHERE recipeId = ? AND userId = ?`;
+  sql = `UPDATE recipes SET recipeName = ?, ingredientList = ?, instructions = ?, imageLink = ?, parsedIngredients = ? WHERE recipeId = ? AND userId = ?`;
   let params = [recipeName, ingredientList, instructions, imageLink, jsonIngredients, recipeId, userId];
 
   await executeSQL(sql, params);
@@ -880,18 +902,18 @@ app.post('/editRecipe', async (req, res) => {
 
 
 
-// Route for deleting a recipe
+// route for deleting a recipe
 app.delete('/deleteRecipe', async (req, res) => {
   let recipeId = req.body.recipeId;
   let sessionID = req.sessionID;
 
   // Get the userId associated with this session
-  let sql = `SELECT userId FROM mp_accounts WHERE sessionId = ?`;
+  let sql = `SELECT userId FROM accounts WHERE sessionId = ?`;
   let result = await executeSQL(sql, [sessionID]);
   let userId = result[0].userId;
 
   // Delete the recipe
-  sql = `DELETE FROM mp_userrecipes WHERE recipeId = ? AND userId = ?`;
+  sql = `DELETE FROM recipes WHERE recipeId = ? AND userId = ?`;
   result = await executeSQL(sql, [recipeId, userId]);
 
   console.log(`Deleted recipe with ID ${recipeId}, result: ${JSON.stringify(result)}`);
@@ -905,15 +927,11 @@ app.delete('/deleteRecipe', async (req, res) => {
 });
 
 
-
-
-
-
-
+//  get users recipes and send data to myRecipes frontend page
 app.get('/myRecipes', async (req, res) => {
   let sessionID = req.sessionID;
   console.log("sessionId: ", sessionID)
-  let sql = `SELECT userId FROM mp_accounts WHERE sessionId = ?`;
+  let sql = `SELECT userId FROM accounts WHERE sessionId = ?`;
   let userId = await executeSQL(sql, [sessionID]);
 
   console.log("preuserId: ", userId)
@@ -921,7 +939,7 @@ app.get('/myRecipes', async (req, res) => {
   console.log("userId: ", userId)
 
   sql = `SELECT *
-              FROM mp_userrecipes
+              FROM recipes
               WHERE userId = ?
               `;
 
@@ -931,16 +949,7 @@ app.get('/myRecipes', async (req, res) => {
 });
 
 
-
-
-
-app.get("/dbTest", async function(req, res) {
-  let sql = "SELECT CURDATE()";
-  let rows = await executeSQL(sql);
-  res.send(rows);
-});//dbTest
-
-
+//  executes all sql queries
 async function executeSQL(sql, params) {
   return new Promise(function(resolve, reject) {
     pool.query(sql, params, function(err, rows, fields) {
@@ -957,12 +966,12 @@ async function executeSQL(sql, params) {
 }
 
 
-
+//  validate user authorization with database query
 async function isAuth(req, res, next) {
   console.log("Entered isAuth function");
 
   //  grab rows where sessionId and userId match database 
-  const sql = `SELECT * FROM mp_accounts WHERE sessionId = ?`;
+  const sql = `SELECT * FROM accounts WHERE sessionId = ?`;
   const isAuthenticated = await executeSQL(sql, [req.sessionID]);
 
   if (isAuthenticated) {
@@ -978,7 +987,15 @@ async function isAuth(req, res, next) {
 }
 
 
-//values in red must be updated
+//  test database connection with current date query
+app.get("/dbTest", async function(req, res) {
+  let sql = "SELECT CURDATE()";
+  let rows = await executeSQL(sql);
+  res.send(rows);
+});
+
+
+//  connect database
 function dbConnection() {
 
   const pool = mysql.createPool({
@@ -992,22 +1009,10 @@ function dbConnection() {
 
   return pool;
 
-} //dbConnection
+}
 
-//start server
+
+//  start server
 app.listen(3000, () => {
   console.log("Expresss server running...")
 })
-
-
-
-
-// pull recipe row from database mp_recipes based on recipeId
-// sql = `SELECT *
-//          FROM mp_recipes
-//          WHERE recipeId = ?`;
-// let data = await executeSQL(sql, [current]); data = data;
-
-
-
-// api to use to search recipes:https://webknox-recipes.p.rapidapi.com/recipes/search

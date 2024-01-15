@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Ingredients</title>
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <%- include("partials/navbar.ejs") %>
+    <h1>Add Ingredients</h1>
+    <form action="/addIngredient" method="post">
+        <div>
+            <label for="name">Ingredient Name:</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        <div>
+            <label for="calories">Calories:</label>
+            <input type="number" id="calories" name="calories" required>
+        </div>
+        <div>
+            <label for="protein">Protein (g):</label>
+            <input type="number" id="protein" name="protein" step="any" required>
+        </div>
+        <div>
+            <label for="carbs">Carbohydrates (g):</label>
+            <input type="number" id="carbs" name="carbs" step="any" required>
+        </div>
+        <div>
+            <label for="fats">Fats (g):</label>
+            <input type="number" id="fats" name="fats" step="any" required>
+        </div>
+        <div>
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" name="quantity" required>
+        </div>
+        <button type="submit">Add Ingredient</button>
+    </form>
+</body>
+</html>
