@@ -829,10 +829,11 @@ app.get('/ingredients', isAuth, async function(req, res) {
     let userId = await getUserIdFromSessionID(req.sessionID);
     console.log("User ID for Ingredients Page:", userId);
 
-    // Fetch the user's ingredients from the database
-    let sql = `SELECT * FROM ingredients WHERE userId = ?`;
+    // Fetch the user's ingredients from the database, including calories and macros
+    let sql = `SELECT name, calories, protein, carbs, fats, fiber, sugar, serving_size_description, serving_size_amount, total_weight_in_grams, created_at, updated_at, id FROM ingredients WHERE userId = ?`;
     let userIngredients = await executeSQL(sql, [userId]);
 
+    console.log(userIngredients)
     // Render the ingredients page with the fetched data
     res.render('ingredients',  { userId: userId , userIngredients: userIngredients } );
   } catch (error) {
@@ -840,6 +841,7 @@ app.get('/ingredients', isAuth, async function(req, res) {
     res.send("An error occurred while loading the ingredients page.");
   }
 });
+
 
 
 app.get('/addingredients', isAuth, async (req, res) => {
@@ -855,20 +857,24 @@ app.get('/addingredients', isAuth, async (req, res) => {
 
 app.post('/addIngredient', isAuth, async (req, res) => {
   let userId = await getUserIdFromSessionID(req.sessionID);
-  let { name, calories, quantity } = req.body; // Add other fields as needed
+  let { name, calories, protein, carbs, fats, fiber, sugar, serving_size_description, serving_size_amount, total_weight_in_grams } = req.body;
 
-  let sql = `INSERT INTO ingredients (userId, name, calories) VALUES (?, ?, ?)`; // Adjust the SQL to match your schema
-  let params = [userId, name, calories, quantity]; // Add other fields as needed
+  let sql = `INSERT INTO ingredients 
+             (userId, name, calories, protein, carbs, fats, fiber, sugar, serving_size_description, serving_size_amount, total_weight_in_grams) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  let params = [userId, name, calories, protein, carbs, fats, fiber, sugar, serving_size_description, serving_size_amount, total_weight_in_grams];
 
   try {
       await executeSQL(sql, params);
-      console.log(`Ingredient added by user ${userId}:`, { name, calories, quantity }); // Log more fields as needed
-      res.redirect('/ingredients'); // Redirect to the ingredients list page, or wherever appropriate
+      console.log(`Ingredient added by user ${userId}:`, { name, calories, protein, carbs, fats, fiber, sugar, serving_size_description, serving_size_amount, total_weight_in_grams });
+      res.redirect('/ingredients');
   } catch (error) {
       console.error("Error adding ingredient:", error);
       res.send("An error occurred while adding the ingredient.");
   }
 });
+
+
 
 
 
@@ -930,13 +936,13 @@ app.delete('/deleteRecipe', async (req, res) => {
 //  get users recipes and send data to myRecipes frontend page
 app.get('/myRecipes', async (req, res) => {
   let sessionID = req.sessionID;
-  console.log("sessionId: ", sessionID)
+  // console.log("sessionId: ", sessionID)
   let sql = `SELECT userId FROM accounts WHERE sessionId = ?`;
   let userId = await executeSQL(sql, [sessionID]);
 
-  console.log("preuserId: ", userId)
+  // console.log("preuserId: ", userId)
   userId = userId[0].userId;
-  console.log("userId: ", userId)
+  // console.log("userId: ", userId)
 
   sql = `SELECT *
               FROM recipes
@@ -947,6 +953,56 @@ app.get('/myRecipes', async (req, res) => {
   //console.log("data_test: ", data);
   res.render('myRecipes', { "userInfo": userId, "data": data });
 });
+
+
+
+
+// Route to handle DELETE request for deleting an ingredient
+app.delete('/deleteIngredient/:id', isAuth, async (req, res) => {
+  const ingredientId = req.params.id;
+  const userId = await getUserIdFromSessionID(req.sessionID);
+
+  try {
+    let sql = `DELETE FROM ingredients WHERE ingredientId = ? AND userId = ?`;
+    let result = await executeSQL(sql, [ingredientId, userId]);
+    if (result.affectedRows > 0) {
+      res.json({ success: true });
+    } else {
+      res.json({ success: false });
+    }
+  } catch (error) {
+    console.error("Error deleting ingredient:", error);
+    res.status(500).json({ error: "An error occurred while deleting the ingredient." });
+  }
+});
+
+
+
+
+// Route to handle PUT request for updating an ingredient
+app.put('/updateIngredient/:id', async (req, res) => {
+
+  console.log("Hit save button put route")
+  const id = req.params.id;
+  console.log("\nid: ", id, "\n")
+  const userId = await getUserIdFromSessionID(req.sessionID);
+  const { name, calories, protein, carbs, fats} = req.body; // Add additional fields as needed
+  try {
+    let sql = `UPDATE ingredients SET name = ?, calories = ?, protein = ?, carbs = ?, fats = ? WHERE id = ? AND userId = ?`;
+    let result = await executeSQL(sql, [name, calories, protein, carbs, fats, id, userId]);
+    if (result.affectedRows > 0) {
+      res.json({ success: true });
+    } else {
+      res.json({ success: false });
+    }
+  } catch (error) {
+    console.error("Error updating ingredient:", error);
+    res.status(500).json({ error: "An error occurred while updating the ingredient." });
+  }
+});
+
+
+
 
 
 //  executes all sql queries

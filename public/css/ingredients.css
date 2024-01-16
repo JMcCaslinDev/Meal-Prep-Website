@@ -1,35 +1,89 @@
 body {
-    text-align: center;
-    background: linear-gradient(#c0cccb, #89918f);
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    color: black;
-    font-family: sans-serif;
-  }
-  
-  nav {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background-color: #B9BBC1;
-    width: 100%;
-    position: relative;
+  text-align: center;
+  background: linear-gradient(#c0cccb, #89918f);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: black;
+  font-family: 'Arial', sans-serif;
+}
+
+nav {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #B9BBC1;
+  width: 100%;
+  position: relative;
 }
 
 .nav {
-    float: left;
-    display: flex;
-    color: darkslategray;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
+  float: left;
+  display: block;
+  color: darkslategray;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
 }
 
-#ingredientFrame{
-    display: inline-block;
-    margin: 10px;
-    width: 500px;
-    text-align: center;
-    background-color: #B9BBC1;
+#ingredientFrame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+  padding: 20px;
+  background-color: #B9BBC1;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ingredient-box {
+  background-color: #fff;
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 80%; /* Adjust the width as per your design */
+  max-width: 350px; /* Maximum width */
+}
+
+.ingredient-box h1 {
+  color: #333;
+  font-size: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+#WideLine {
+  height: 2px;
+  background-color: darkslategray;
+  margin: 10px 0;
+}
+
+#ingredientInnerFrameBottom p {
+  font-size: 1em;
+  line-height: 1.5;
+  color: #666;
+}
+
+#myIngredientsFrameTop a {
+  margin-right: 15px;
+  padding: 10px 15px;
+  background-color: darkslategray;
+  color: white;
+  text-transform: uppercase;
+  font-weight: bold;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+#myIngredientsFrameTop a:hover {
+  background-color: #333;
+  text-decoration: none;
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .ingredient-box {
+    width: 95%; /* Makes the ingredient boxes almost full-width on small screens */
   }
+}
