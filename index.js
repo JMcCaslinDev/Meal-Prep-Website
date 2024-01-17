@@ -959,12 +959,14 @@ app.get('/myRecipes', async (req, res) => {
 
 // Route to handle DELETE request for deleting an ingredient
 app.delete('/deleteIngredient/:id', isAuth, async (req, res) => {
-  const ingredientId = req.params.id;
+  console.log("delete function called")
+  const id = req.params.id;
+  console.log("\nid delete: ", id)
   const userId = await getUserIdFromSessionID(req.sessionID);
 
   try {
-    let sql = `DELETE FROM ingredients WHERE ingredientId = ? AND userId = ?`;
-    let result = await executeSQL(sql, [ingredientId, userId]);
+    let sql = `DELETE FROM ingredients WHERE id = ? AND userId = ?`;
+    let result = await executeSQL(sql, [id, userId]);
     if (result.affectedRows > 0) {
       res.json({ success: true });
     } else {
@@ -986,10 +988,10 @@ app.put('/updateIngredient/:id', async (req, res) => {
   const id = req.params.id;
   console.log("\nid: ", id, "\n")
   const userId = await getUserIdFromSessionID(req.sessionID);
-  const { name, calories, protein, carbs, fats} = req.body; // Add additional fields as needed
+  const { name, calories, protein, carbs, fats, fiber, sugar, servingSizeDescription, servingSizeAmount, totalWeightInGrams} = req.body; // Add additional fields as needed
   try {
-    let sql = `UPDATE ingredients SET name = ?, calories = ?, protein = ?, carbs = ?, fats = ? WHERE id = ? AND userId = ?`;
-    let result = await executeSQL(sql, [name, calories, protein, carbs, fats, id, userId]);
+    let sql = `UPDATE ingredients SET name = ?, calories = ?, protein = ?, carbs = ?, fats = ?, fiber = ?, sugar = ?, serving_size_description = ?, serving_size_amount = ?, total_weight_in_grams = ? WHERE id = ? AND userId = ?`;
+    let result = await executeSQL(sql, [name, calories, protein, carbs, fats, fiber, sugar, servingSizeDescription, servingSizeAmount, totalWeightInGrams, id, userId]);
     if (result.affectedRows > 0) {
       res.json({ success: true });
     } else {
