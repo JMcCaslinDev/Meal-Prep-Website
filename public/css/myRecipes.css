@@ -1,0 +1,113 @@
+body {
+    display: flex;
+    flex-direction: column; /* Stack children vertically */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    min-height: 100vh; /* Full height of the viewport */
+    margin: 0;
+    background: linear-gradient(#c0cccb, #89918f);
+    color: black;
+    font-family: 'Arial', sans-serif;
+}
+
+h1 {
+    margin-top: 52px;
+    margin-bottom: 10px;
+    top: 0;
+}
+
+nav {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #B9BBC1;
+    top: 0;
+    width: 100%;
+    position: absolute;
+}
+
+.nav {
+    float: left;
+    display: block;
+    color: darkslategray;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+
+.mb-3 {
+    display: flex; /* Use flexbox */
+    flex-direction: row; /* Layout elements in a row */
+    align-items: center; /* Center align the items vertically */
+    margin-bottom: 10px; /* Reduce margin to decrease space */
+}
+
+.form-label {
+    text-align: right; /* Align text to the right */
+    margin-right: 10px; /* Space between label and input */
+    flex: 0 0 140px; /* Set a fixed width for labels */
+}
+
+.form-control {
+    flex-grow: 1; /* Allow the input to grow and fill the space */
+    display: block;
+    width: 100%; /* Full width of the parent */
+}
+
+/* You may need to adjust the max-width for different screen sizes */
+@media (min-width: 576px) {
+    .form-control {
+        max-width: 250px; /* Adjust this as needed */
+    }
+}
+
+
+#myRecipesColumn {
+    background-color: #B9BBC1;
+}
+
+#myRecipesFrameTop {
+    /* background-color: blue; */
+    margin-bottom: 50px;
+}
+
+
+#WideLine {
+    height: 2px;
+    background-color: darkslategray;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    
+}
+
+#recipeInnerFrameTop {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+#recipeInnerFrameBottom {
+    background-color: green;
+}
+
+.recipe-box {
+    width: 500px; /* fixed width or you could use max-width for responsiveness */
+    min-height: 200px; /* minimum height to ensure boxes aren't too small */
+    background-color: whitesmoke;
+    margin: 20px;
+    border-radius: 10px;
+    padding: 10px;
+    display: flex; /* enables flex content */
+    flex-direction: column; /* stack children vertically */
+    justify-content: flex-start; /* align children to the start */
+    overflow: hidden; /* keeps the content within the borders */
+}
+
+
+img {
+    width: 200px;
+    height: 200px;
+    border-radius: 50px;
+  }

@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
 import express from "express";
-import mysql from 'mysql';
+// import mysql from 'mysql';
+import mysql from 'mysql2/promise';
 import session from 'express-session';
 import bcrypt from 'bcrypt';
 import { Mutex } from 'async-mutex';
@@ -8,6 +9,7 @@ import { parseIngredients } from './public/js/ingredientParser.js';
 import { v4 as uuidv4 } from 'uuid';
 import moment from 'moment-timezone';
 import dotenv from 'dotenv';
+import { exit } from 'process';
 dotenv.config();
 
 const app = express();
@@ -284,33 +286,64 @@ app.get('/recipes', (req, res) => {
 
 
 
-//  create custom recipes and store them in users recipes in database
+
+// create custom recipes and store them in users recipes in the database
 app.post('/recipe', async (req, res) => {
-  //  Get userId securely given the sessionID
-  let userId = await getUserIdFromSessionID(req.sessionID);
-  console.log("User ID:", userId);
+  let connection;
+  try {
+    // Get userId securely given the sessionID
+    let userId = await getUserIdFromSessionID(req.sessionID);
+    console.log("User ID:", userId);
 
-  let recipeName = req.body.recipeName;
-  let ingredients = req.body.ingredients;
-  let instructions = req.body.instructions;
-  let fpic = req.body.foodPic;
+    let ingredients = req.body.ingredients.map(ing => ({
+      ingredient_id: ing.ingredient_id,
+      quantity: ing.quantity,
+      unit: ing.unit
+    }));
 
-  // Parse the ingredients
-  let parsedIngredients = parseIngredients(ingredients);
+    console.log("\ningredients: ", ingredients, "\n");
+    
+    let recipeName = req.body.recipeName;
+    let instructions = req.body.instructions;
+    let imageLink = req.body.foodPic;
 
-  // Convert parsedIngredients to a JSON string
-  let parsedIngredientsJSON = JSON.stringify(parsedIngredients);
+    // Start a database transaction
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
 
-  console.log(parsedIngredientsJSON);
+    // Insert the new recipe into the 'recipes' table
+    let recipeSql = `INSERT INTO recipes (recipeName, instructions, imageLink, userId) VALUES (?, ?, ?, ?)`;
+    let recipeParams = [recipeName, instructions, imageLink, userId];
+    let recipeResult = await executeSQL(recipeSql, recipeParams);
+    let recipeId = recipeResult.insertId;
+    console.log("Recipe ID:", recipeId);
 
-  // Define the SQL query here
-  let sql = `INSERT INTO recipes
-             (recipeName, ingredientList, instructions, imageLink, userId, parsedIngredients)
-             VALUES (?, ?, ?, ?, ?, ?)`;
-  let params = [recipeName, ingredients, instructions, fpic, userId, parsedIngredientsJSON];
-  await executeSQL(sql, params);
-  res.redirect('/myRecipes');
+    // Now, insert each ingredient into the 'recipes_ingredients' table
+    let ingredientSql = `INSERT INTO recipes_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES (?, ?, ?, ?)`;
+    for (let ingredient of ingredients) {
+      let ingredientParams = [recipeId, ingredient.ingredient_id, ingredient.quantity, ingredient.unit];
+      await executeSQL(ingredientSql, ingredientParams);
+    }
+    
+    // Commit the transaction if all is well
+    await connection.commit();
+    console.log("\nCommitting transaction successfully\n");
+    res.redirect('/myRecipes');
+  } catch (error) {
+    // If any error occurs, roll back the transaction
+    if (connection) {
+      await connection.rollback();
+    }
+    console.error('Transaction Error:', error);
+    res.status(500).send('Error creating recipe');
+  } finally {
+    // Release the connection back to the pool
+    if (connection) {
+      connection.release();
+    }
+  }
 });
+
 
 
 
@@ -764,11 +797,23 @@ app.post("/updateFridgeItem", async function(req, res) {
 
 
 
-//  create recipes route (unsure what this does currently or if its implemented even)
-app.get('/createRecipes', (req, res) => {
+app.get('/createRecipes', isAuth, async (req, res) => {
+  try {
+    // Get the user ID from the session
+    let userId = await getUserIdFromSessionID(req.sessionID);
 
-  res.render('createRecipes');
+    // Fetch the user's ingredients from the database
+    let sql = `SELECT id, name FROM ingredients WHERE userId = ?`;
+    let userIngredients = await executeSQL(sql, [userId]);
+    console.log("\nuserIngredients: ", userIngredients)
+    // Render the createRecipes page with the fetched ingredients
+    res.render('createRecipes', { userIngredients: userIngredients });
+  } catch (error) {
+    console.error("Error loading createRecipes page:", error);
+    res.send("An error occurred while loading the createRecipes page.");
+  }
 });
+
 
 
 //  route for displaying the page info for bmi
@@ -1007,21 +1052,6 @@ app.put('/updateIngredient/:id', async (req, res) => {
 
 
 
-//  executes all sql queries
-async function executeSQL(sql, params) {
-  return new Promise(function(resolve, reject) {
-    pool.query(sql, params, function(err, rows, fields) {
-      if (err) {
-        console.error("Error in executeSQL:", err);
-        console.error("SQL Query:", sql);
-        console.error("Parameters:", params);
-        // Optionally, log more context or variables here
-        return reject(err);
-      }
-      resolve(rows);
-    });
-  });
-}
 
 
 //  validate user authorization with database query
@@ -1053,9 +1083,10 @@ app.get("/dbTest", async function(req, res) {
 });
 
 
-//  connect database
-function dbConnection() {
 
+
+// Connect to the database using mysql2 with promise support
+function dbConnection() {
   const pool = mysql.createPool({
     connectionLimit: 10,
     host: process.env.DB_HOST,
@@ -1066,8 +1097,41 @@ function dbConnection() {
   });
 
   return pool;
-
 }
+
+
+// //  executes all sql queries
+// async function executeSQL(sql, params) {
+//   return new Promise(function(resolve, reject) {
+//     pool.query(sql, params, function(err, rows, fields) {
+//       if (err) {
+//         console.error("Error in executeSQL:", err);
+//         console.error("SQL Query:", sql);
+//         console.error("Parameters:", params);
+//         // Optionally, log more context or variables here
+//         return reject(err);
+//       }
+//       resolve(rows);
+//     });
+//   });
+// }
+
+//  Executes all SQL queries with promise support using mysql2
+async function executeSQL(sql, params) {
+  try {
+    const [rows, fields] = await pool.query(sql, params);
+    return rows;
+  } catch (err) {
+    console.error("Error in executeSQL:", err);
+    console.error("SQL Query:", sql);
+    console.error("Parameters:", params);
+    throw err; // Rethrow the error for the caller to handle
+  }
+}
+
+
+
+
 
 
 //  start server
