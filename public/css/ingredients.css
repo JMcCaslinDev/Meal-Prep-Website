@@ -1,35 +1,247 @@
 body {
-    text-align: center;
-    background: linear-gradient(#c0cccb, #89918f);
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    color: black;
-    font-family: sans-serif;
-  }
-  
-  nav {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background-color: #B9BBC1;
-    width: 100%;
-    position: relative;
+  display: flex;
+  flex-direction: column; /* Stack children vertically */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  min-height: 100vh; /* Full height of the viewport */
+  margin: 0;
+  background: linear-gradient(#c0cccb, #89918f);
+  color: black;
+  font-family: 'Arial', sans-serif;
+}
+
+h1 {
+  margin-top: 52px;
+  margin-bottom: 10px;
+  top: 0;
+}
+
+nav {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #B9BBC1;
+  top: 0;
+  width: 100%;
+  position: absolute;
 }
 
 .nav {
-    float: left;
-    display: flex;
-    color: darkslategray;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
+  float: left;
+  display: block;
+  color: darkslategray;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
 }
 
-#ingredientFrame{
-    display: inline-block;
-    margin: 10px;
-    width: 500px;
-    text-align: center;
+#ingredientFrame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  padding-bottom: 0px;
+  background-color: #B9BBC1;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 80%;
+  max-width: 350px;
+  margin-bottom: 20px;
+}
+
+.ingredient-box {
+  background-color: #fff;
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-width: 310px;
+  max-width: 350px;
+  word-break: break-word;
+  box-sizing: border-box;
+  align-items: stretch;
+  }
+
+  .ingredient-box:hover {
+    background-color: #dadadae3
+  }
+  
+  .ingredient-box h1 {
+  color: #333;
+  font-size: 1.5em;
+  margin-bottom: 0.5em;
+  }
+  
+  #WideLine {
+  height: 2px;
+  background-color: darkslategray;
+  margin: 10px 0;
+  }
+  
+  #ingredientInnerFrameBottom p {
+  font-size: 1em;
+  line-height: 1.5;
+  color: #666;
+  }
+  #myIngredientsInnerFrameTopAddIngredientButton {
+  margin-right: 10px;
+  }
+  #myIngredientsInnerFrameTopAddIngredientButton, #myIngredientsInnerFrameTopManageIngredientsButton {
+  margin-bottom: 20px;
+  padding: 10px 15px;
+  background-color: darkslategray;
+  color: white;
+  text-transform: uppercase;
+  font-weight: bold;
+  border-radius: 10px;
+  transition: background-color 0.3s;
+  }
+  #myIngredientsFrameTop {
+  max-width: 350px;
+  display: flex; /* Make this a flex container */
+  justify-content: space-between; /* Space the children evenly */
+  }
+  
+  #myIngredientsInnerFrameTopAddIngredientButton:hover, #myIngredientsInnerFrameTopManageIngredientsButton:hover {
+  background-color: #333;
+  text-decoration: none;
+  color: #fff;
+  }
+  
+  @media (max-width: 768px) {
+  .ingredient-box {
+  width: 95%;
+  }
+  }
+  
+  /* New Styles */
+  .form-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  justify-content: space-between;
+  max-height: 50px;
+  }
+
+  .modal-form-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  justify-content: space-between;
+  max-height: 35px;
+  }
+  
+  .form-label {
+  max-width: 125px;
+  }
+  
+
+  
+  /* Style for the delete button */
+  .delete-button {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  margin-left: 10px;
+  border-radius: 10px;
+  }
+  
+  .delete-button:hover {
+  background-color: #c82333;
+  }
+  
+  /* Confirm dialog */
+  .confirm-dialog {
+  display: none;
+  position: fixed;
+  
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  z-index: 1050;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .confirm-dialog button {
+  margin-top: 10px;
+  }
+  
+  .confirm-dialog button:first-child {
+  margin-right: 5px;
+  }
+  
+ 
+  
+  /* Style for the modal footer with buttons */
+  .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  }
+
+  #formFrame {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0px;
     background-color: #B9BBC1;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 80%;
+    max-width: 350px;
+    margin-bottom: 20px;
+  }
+  input[type=number], input[type=text] {
+    width: 225px;
+    padding: 10px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-sizing: border-box;
+    
+  }
+
+
+  button[type=submit] {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-sizing: border-box;
+  }
+  
+  button[type=submit] {
+    width: 100%;
+    background-color: darkslategray;
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  
+  button[type=submit]:hover {
+    background-color: #333;
+  }
+  
+  label {
+    max-width: 100px;
+  }
+
+  .modal-content {
+    width: 350px;
+  }
+
+  .modal-dialog {
+    justify-content: center;
+    display: flex;
   }
