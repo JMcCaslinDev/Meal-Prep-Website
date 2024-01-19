@@ -30,12 +30,12 @@
             <div id="recipeInnerFrameTopName" style="width: calc(100% - 210px);">
               <h1><%= data[i].recipeName %></h1> 
               <div class="nutrition-info">
-                <div><strong>Calories:</strong> <span>xxx</span></div>
-                <div><strong>Protein:</strong> <span>xx g</span></div>
-                <div><strong>Carbs:</strong> <span>xx g</span></div>
-                <div><strong>Fats:</strong> <span>xx g</span></div>
-                <div><strong>Fiber:</strong> <span>xx g</span></div>
-                <div><strong>Sugar:</strong> <span>xx g</span></div>
+                <div><strong>Calories:</strong> <span><%= data[i].totalCalories || 'N/A' %></span></div>
+                <div><strong>Protein:</strong> <span><%= data[i].totalProtein || 'N/A' %> (g)</span></div>
+                <div><strong>Carbs:</strong> <span><%= data[i].totalCarbs || 'N/A' %> (g)</span></div>
+                <div><strong>Fats:</strong> <span><%= data[i].totalFats || 'N/A' %> (g)</span></div>
+                <div><strong>Fiber:</strong> <span><%= data[i].totalFiber || 'N/A' %> (g)</span></div>
+                <div><strong>Sugar:</strong> <span><%= data[i].totalSugar || 'N/A' %> (g)</span></div>
               </div>
               <!-- Edit button -->
               <button type="button" class="btn btn-edit" data-bs-toggle="modal" data-bs-target="#editModal-<%=userInfo.userId%>-<%=data[i].id%>" data-recipe-id="<%=data[i].id%>">Edit</button>

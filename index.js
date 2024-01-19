@@ -984,7 +984,6 @@ app.delete('/deleteRecipe', async (req, res) => {
 });
 
 
-//  get users recipes and send data to myRecipes frontend page
 app.get('/myRecipes', async (req, res) => {
   let sessionID = req.sessionID;
 
@@ -993,15 +992,16 @@ app.get('/myRecipes', async (req, res) => {
   let userIdResults = await executeSQL(sqlUserId, [sessionID]);
   let userId = userIdResults[0].userId;
 
-  // Now, retrieve the recipes along with their ingredients for the given userId
+  // Now, retrieve the recipes along with their ingredients and nutritional info for the given userId
   let sqlRecipes = `
-    SELECT recipes.id, recipes.imageLink, recipes.recipeName, recipes.instructions, recipes.ingredientList,
-           recipes_ingredients.quantity, recipes_ingredients.unit, ingredients.name AS ingredientName
-    FROM recipes
-    LEFT JOIN recipes_ingredients ON recipes.id = recipes_ingredients.recipe_id
-    LEFT JOIN ingredients ON recipes_ingredients.ingredient_id = ingredients.id
-    WHERE recipes.userId = ?
-    ORDER BY recipes.id, ingredients.name;
+    SELECT r.id, r.imageLink, r.recipeName, r.instructions, r.ingredientList,
+           ri.quantity, ri.unit, i.name AS ingredientName, 
+           r.totalCalories, r.totalProtein, r.totalCarbs, r.totalFats, r.totalFiber, r.totalSugar
+    FROM recipes r
+    LEFT JOIN recipes_ingredients ri ON r.id = ri.recipe_id
+    LEFT JOIN ingredients i ON ri.ingredient_id = i.id
+    WHERE r.userId = ?
+    ORDER BY r.id, i.name;
   `;
 
   try {
@@ -1016,7 +1016,13 @@ app.get('/myRecipes', async (req, res) => {
           recipeName: row.recipeName,
           instructions: row.instructions,
           ingredientList: row.ingredientList,
-          ingredients: []
+          ingredients: [],
+          totalCalories: row.totalCalories,
+          totalProtein: row.totalProtein,
+          totalCarbs: row.totalCarbs,
+          totalFats: row.totalFats,
+          totalFiber: row.totalFiber,
+          totalSugar: row.totalSugar
         };
       }
       if (row.ingredientName && row.quantity && row.unit) {
@@ -1033,12 +1039,14 @@ app.get('/myRecipes', async (req, res) => {
     let data = Object.values(recipesData);
     console.log("\nData object before passed: ", data, "\n");
 
+    // Send the recipes data with nutrition totals to the template
     res.render('myRecipes', { "userInfo": { userId: userId, username: req.session.username }, "data": data });
   } catch (error) {
     console.error('Error retrieving recipes and ingredients:', error);
     res.status(500).send('Error retrieving recipes');
   }
 });
+
 
 
 
