@@ -329,7 +329,9 @@ app.post('/recipe', async (req, res) => {
     await connection.commit();
     console.log("\nCommitting transaction successfully\n");
 
-    updateRecipeNutritionTotals(recipeId);
+    // To update a single recipe:
+    calculateAndUpdateRecipeTotals(recipeId);
+
     res.redirect('/myRecipes');
   } catch (error) {
     // If any error occurs, roll back the transaction
@@ -949,6 +951,8 @@ app.post('/editRecipe', async (req, res) => {
 
   await executeSQL(sql, params);
   console.log('Parsed ingredients: ', jsonIngredients);
+
+  calculateAndUpdateRecipeTotals(recipeId);
   res.redirect('/myRecipes');
 });
 
@@ -1044,15 +1048,31 @@ app.get('/myRecipes', async (req, res) => {
 
 // Route to handle DELETE request for deleting an ingredient
 app.delete('/deleteIngredient/:id', isAuth, async (req, res) => {
-  console.log("delete function called")
-  const id = req.params.id;
-  console.log("\nid delete: ", id)
+  console.log("delete function called");
+  const ingredientId = req.params.id; // Corrected variable name to ingredientId
+  console.log("\nid delete: ", ingredientId);
   const userId = await getUserIdFromSessionID(req.sessionID);
 
   try {
-    let sql = `DELETE FROM ingredients WHERE id = ? AND userId = ?`;
-    let result = await executeSQL(sql, [id, userId]);
+    let recipesToUpdate = [];
+    // Get all of the recipe ids that are associated with the ingredient id before deleting the ingredient id from the join table
+    const findRecipesSql = `
+      SELECT DISTINCT recipe_id 
+      FROM recipes_ingredients 
+      WHERE ingredient_id = ?
+    `;
+    const recipes = await executeSQL(findRecipesSql, [ingredientId]);
+    recipesToUpdate = recipes.map(recipe => recipe.recipe_id);
+    
+    // Delete the ingredient
+    const sqlDeleteIngredient = `DELETE FROM ingredients WHERE id = ? AND userId = ?`;
+    const result = await executeSQL(sqlDeleteIngredient, [ingredientId, userId]);
+
     if (result.affectedRows > 0) {
+      // Update all recipes that contained the deleted ingredient
+      for (const recipeId of recipesToUpdate) {
+        await calculateAndUpdateRecipeTotals(recipeId);
+      }
       res.json({ success: true });
     } else {
       res.json({ success: false });
@@ -1062,6 +1082,7 @@ app.delete('/deleteIngredient/:id', isAuth, async (req, res) => {
     res.status(500).json({ error: "An error occurred while deleting the ingredient." });
   }
 });
+
 
 
 
@@ -1078,6 +1099,8 @@ app.put('/updateIngredient/:id', async (req, res) => {
     let sql = `UPDATE ingredients SET name = ?, calories = ?, protein = ?, carbs = ?, fats = ?, fiber = ?, sugar = ?, serving_size_description = ?, serving_size_amount = ?, total_weight_in_grams = ? WHERE id = ? AND userId = ?`;
     let result = await executeSQL(sql, [name, calories, protein, carbs, fats, fiber, sugar, servingSizeDescription, servingSizeAmount, totalWeightInGrams, id, userId]);
     if (result.affectedRows > 0) {
+          // To update a single recipe:
+      calculateAndUpdateRecipeTotals(null, id);
       res.json({ success: true });
     } else {
       res.json({ success: false });
@@ -1089,76 +1112,69 @@ app.put('/updateIngredient/:id', async (req, res) => {
 });
 
 
-// Function to update nutritional totals for a given recipe
-async function updateRecipeNutritionTotals(recipeId = null, ingredientId = null) {
+async function calculateAndUpdateRecipeTotals(recipeId = null, ingredientId = null) {
   try {
-    console.log("\nrecipeId: ", recipeId, "\n")
     let recipesToUpdate = [];
     
-    // If an ingredientId is provided, find all recipes that include this ingredient
+    // If an ingredientId is provided, find all recipes that include this ingredient.
     if (ingredientId) {
-      let sqlFindRecipes = `
-        SELECT DISTINCT recipe_id FROM recipes_ingredients WHERE ingredient_id = ?
+      const findRecipesSql = `
+        SELECT DISTINCT recipe_id 
+        FROM recipes_ingredients 
+        WHERE ingredient_id = ?
       `;
-      let recipeIds = await executeSQL(sqlFindRecipes, [ingredientId]);
-      recipesToUpdate = recipeIds.map(row => row.recipe_id);
+      const recipes = await executeSQL(findRecipesSql, [ingredientId]);
+      recipesToUpdate = recipes.map(recipe => recipe.recipe_id);
     }
     
-    // If a recipeId is provided, we update just this recipe
+    // If a recipeId is provided, update only that recipe.
     if (recipeId) {
-      recipesToUpdate.push(recipeId);
+      recipesToUpdate = [recipeId];
     }
+
+    console.log("\nrecipesToUpdate: ", recipesToUpdate, "\n")
+
     
-    // Remove duplicates, if any
-    recipesToUpdate = [...new Set(recipesToUpdate)];
-    
-    // Update each recipe's nutritional totals
+    // Now loop through all affected recipes to update their nutritional totals.
     for (const id of recipesToUpdate) {
-      let sqlNutritionTotals = `
-        SELECT SUM(i.calories * ri.quantity / i.serving_size_amount) AS totalCalories,
-               SUM(i.protein * ri.quantity / i.serving_size_amount) AS totalProtein,
-               SUM(i.carbs * ri.quantity / i.serving_size_amount) AS totalCarbs,
-               SUM(i.fats * ri.quantity / i.serving_size_amount) AS totalFats,
-               SUM(i.fiber * ri.quantity / i.serving_size_amount) AS totalFiber,
-               SUM(i.sugar * ri.quantity / i.serving_size_amount) AS totalSugar
-        FROM recipes_ingredients ri
-        JOIN ingredients i ON ri.ingredient_id = i.id
+      const ingredientsSql = `
+        SELECT i.calories, i.protein, i.carbs, i.fats, i.fiber, i.sugar, i.serving_size_amount, ri.quantity
+        FROM ingredients i
+        JOIN recipes_ingredients ri ON i.id = ri.ingredient_id
         WHERE ri.recipe_id = ?
       `;
-      let totals = await executeSQL(sqlNutritionTotals, [id]);
+      const ingredients = await executeSQL(ingredientsSql, [id]);
+      let totalCalories = 0, totalProtein = 0, totalCarbs = 0, totalFats = 0, totalFiber = 0, totalSugar = 0;
+
+      // Calculate the totals for each recipe.
+      for (const ingredient of ingredients) {
+        const quantityMultiplier = ingredient.quantity / ingredient.serving_size_amount;
+        totalCalories += ingredient.calories * quantityMultiplier;
+        totalProtein += ingredient.protein * quantityMultiplier;
+        totalCarbs += ingredient.carbs * quantityMultiplier;
+        totalFats += ingredient.fats * quantityMultiplier;
+        totalFiber += ingredient.fiber * quantityMultiplier;
+        totalSugar += ingredient.sugar * quantityMultiplier;
+      }
+
+      // Log the totals to the console for debugging.
+      console.log(`Recipe ID ${id} - Calculated Totals: Calories: ${totalCalories}, Protein: ${totalProtein}, Carbs: ${totalCarbs}, Fats: ${totalFats}, Fiber: ${totalFiber}, Sugar: ${totalSugar}`);
       
-      // Update the recipes table with the new totals
-      let sqlUpdateRecipe = `
-        UPDATE recipes SET
-        totalCalories = ?,
-        totalProtein = ?,
-        totalCarbs = ?,
-        totalFats = ?,
-        totalFiber = ?,
-        totalSugar = ?
+      // Update the recipe with the calculated totals.
+      const updateSql = `
+        UPDATE recipes
+        SET totalCalories = ?, totalProtein = ?, totalCarbs = ?, totalFats = ?, totalFiber = ?, totalSugar = ?
         WHERE id = ?
       `;
-      await executeSQL(sqlUpdateRecipe, [
-        totals[0].totalCalories,
-        totals[0].totalProtein,
-        totals[0].totalCarbs,
-        totals[0].totalFats,
-        totals[0].totalFiber,
-        totals[0].totalSugar,
-        id
-      ]);
+      await executeSQL(updateSql, [totalCalories, totalProtein, totalCarbs, totalFats, totalFiber, totalSugar, id]);
+      
+      console.log(`Nutrition totals updated for Recipe ID ${id}`);
     }
   } catch (error) {
-    console.error("Error in updateRecipeNutritionTotals:", error);
+    console.error("Error in calculateAndUpdateRecipeTotals:", error);
     throw error;
   }
 }
-
-
-
-
-
-
 
 
 //  validate user authorization with database query
