@@ -21,10 +21,9 @@
   </div>
   <div id="myRecipesColumn">
     
-
     <% for(let i = 0; i < data.length; i++) { %>
       <div class="recipe-box">
-        <div id="recipe-<%=userInfo.userId%>-<%=data[i].recipeId%>"> 
+        <div id="recipe-<%=userInfo.userId%>-<%=data[i].id%>"> 
 
           <div id="recipeInnerFrameTop"> 
             <img id="recipeInnerFrameTopImg" src="<%=data[i].imageLink%>">
@@ -39,14 +38,20 @@
                 <div><strong>Sugar:</strong> <span>xx g</span></div>
               </div>
               <!-- Edit button -->
-              <button type="button" class="btn btn-edit" data-bs-toggle="modal" data-bs-target="#editModal-<%=userInfo.userId%>-<%=data[i].recipeId%>" data-recipe-id="<%=data[i].recipeId%>">Edit</button>
+              <button type="button" class="btn btn-edit" data-bs-toggle="modal" data-bs-target="#editModal-<%=userInfo.userId%>-<%=data[i].id%>" data-recipe-id="<%=data[i].id%>">Edit</button>
             </div>
           </div>
           <div id="WideLine"></div>
 
           <div id="recipeInnerFrameBottom">
             <div id="recipeInnerFrameBottomIngredients">
-              <p class="no-margin"><strong>Ingredients: </strong> <%= data[i].ingredientList %></p>
+              <p class="no-margin"><strong>Ingredients: </strong>
+                <% if(data[i].ingredients && data[i].ingredients.length > 0) { %>
+                  <%= data[i].ingredients.map(ingredient => ingredient.name + ' ' + ingredient.quantity + ' ' + ingredient.unit).join(', ') + '.' %>
+                <% } else { %>
+                  No ingredients listed.
+                <% } %>
+              </p>
             </div>
             <div id="recipeInnerFrameBottomInstructions">
               <p class="no-margin"><strong>Instructions: </strong> <%= data[i].instructions %></p>
@@ -55,27 +60,31 @@
 
         </div>
 
-
         <!-- Edit Modal -->
-        <div class="modal fade" id="editModal-<%=userInfo.userId%>-<%=data[i].recipeId%>" tabindex="-1" aria-labelledby="editModalLabel-<%=userInfo.userId%>-<%=data[i].recipeId%>" aria-hidden="true">
+        <div class="modal fade" id="editModal-<%=userInfo.userId%>-<%=data[i].id%>" tabindex="-1" aria-labelledby="editModalLabel-<%=userInfo.userId%>-<%=data[i].id%>" aria-hidden="true">
           <div class="modal-dialog">
             <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title" id="editModalLabel-<%=userInfo.userId%>-<%=data[i].recipeId%>">Edit Recipe</h5>
+                <h5 class="modal-title" id="editModalLabel-<%=userInfo.userId%>-<%=data[i].id%>">Edit Recipe</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">
                 <!-- Edit form goes here -->
                 <form action="/editRecipe" method="post">
                   <input type="hidden" name="userId" value="<%=userInfo.userId%>">
-                  <input type="hidden" name="recipeId" value="<%=data[i].recipeId%>">
+                  <input type="hidden" name="recipeId" value="<%=data[i].id%>">
                   <div class="mb-3">
                     <label for="recipeName" class="form-label">Recipe Name</label>
                     <input type="text" class="form-control" id="recipeName" name="recipeName" value="<%=data[i].recipeName%>" required>
                   </div>
                   <div class="mb-3">
                     <label for="ingredientList" class="form-label">Ingredients</label>
-                    <textarea class="form-control" id="ingredientList" name="ingredientList" required><%=data[i].ingredientList%></textarea>
+                    <!-- Ingredients should be editable in a textarea or a series of text inputs -->
+                    <textarea class="form-control" id="ingredientList" name="ingredientList" required>
+                      <% data[i].ingredients.forEach(ingredient => { %>
+                        <%= ingredient.quantity + ' ' + ingredient.unit + ' ' + ingredient.name %>\n
+                      <% }); %>
+                    </textarea>
                   </div>
                   <div class="mb-3">
                     <label for="instructions" class="form-label">Instructions</label>
@@ -88,7 +97,7 @@
                   <button type="submit" class="btn btn-primary">Save</button>
                 </form>
                 <!-- Delete button -->
-                <button type="button" class="btn btn-danger" onclick="deleteRecipe('<%=userInfo.userId%>', '<%=data[i].recipeId%>')">Delete</button>
+                <button type="button" class="btn btn-danger" onclick="deleteRecipe('<%=userInfo.userId%>', '<%=data[i].id%>')">Delete</button>
               </div>
             </div>
           </div>

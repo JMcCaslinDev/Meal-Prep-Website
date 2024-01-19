@@ -328,6 +328,8 @@ app.post('/recipe', async (req, res) => {
     // Commit the transaction if all is well
     await connection.commit();
     console.log("\nCommitting transaction successfully\n");
+
+    updateRecipeNutritionTotals(recipeId);
     res.redirect('/myRecipes');
   } catch (error) {
     // If any error occurs, roll back the transaction
@@ -981,23 +983,61 @@ app.delete('/deleteRecipe', async (req, res) => {
 //  get users recipes and send data to myRecipes frontend page
 app.get('/myRecipes', async (req, res) => {
   let sessionID = req.sessionID;
-  // console.log("sessionId: ", sessionID)
-  let sql = `SELECT userId FROM accounts WHERE sessionId = ?`;
-  let userId = await executeSQL(sql, [sessionID]);
 
-  // console.log("preuserId: ", userId)
-  userId = userId[0].userId;
-  // console.log("userId: ", userId)
+  // First, get the userId from the accounts table using the sessionID
+  let sqlUserId = `SELECT userId FROM accounts WHERE sessionId = ?`;
+  let userIdResults = await executeSQL(sqlUserId, [sessionID]);
+  let userId = userIdResults[0].userId;
 
-  sql = `SELECT *
-              FROM recipes
-              WHERE userId = ?
-              `;
+  // Now, retrieve the recipes along with their ingredients for the given userId
+  let sqlRecipes = `
+    SELECT recipes.id, recipes.imageLink, recipes.recipeName, recipes.instructions, recipes.ingredientList,
+           recipes_ingredients.quantity, recipes_ingredients.unit, ingredients.name AS ingredientName
+    FROM recipes
+    LEFT JOIN recipes_ingredients ON recipes.id = recipes_ingredients.recipe_id
+    LEFT JOIN ingredients ON recipes_ingredients.ingredient_id = ingredients.id
+    WHERE recipes.userId = ?
+    ORDER BY recipes.id, ingredients.name;
+  `;
 
-  let data = await executeSQL(sql, [userId]);
-  //console.log("data_test: ", data);
-  res.render('myRecipes', { "userInfo": userId, "data": data });
+  try {
+    let recipesIngredientsData = await executeSQL(sqlRecipes, [userId]);
+
+    // Organize the data into a structure where each recipe has its associated ingredients
+    let recipesData = recipesIngredientsData.reduce((acc, row) => {
+      if (!acc[row.id]) {
+        acc[row.id] = {
+          id: row.id,
+          imageLink: row.imageLink,
+          recipeName: row.recipeName,
+          instructions: row.instructions,
+          ingredientList: row.ingredientList,
+          ingredients: []
+        };
+      }
+      if (row.ingredientName && row.quantity && row.unit) {
+        acc[row.id].ingredients.push({
+          name: row.ingredientName,
+          quantity: row.quantity,
+          unit: row.unit
+        });
+      }
+      return acc;
+    }, {});
+
+    // Convert the organized data into an array for the EJS template
+    let data = Object.values(recipesData);
+    console.log("\nData object before passed: ", data, "\n");
+
+    res.render('myRecipes', { "userInfo": { userId: userId, username: req.session.username }, "data": data });
+  } catch (error) {
+    console.error('Error retrieving recipes and ingredients:', error);
+    res.status(500).send('Error retrieving recipes');
+  }
 });
+
+
+
 
 
 
@@ -1047,6 +1087,73 @@ app.put('/updateIngredient/:id', async (req, res) => {
     res.status(500).json({ error: "An error occurred while updating the ingredient." });
   }
 });
+
+
+// Function to update nutritional totals for a given recipe
+async function updateRecipeNutritionTotals(recipeId = null, ingredientId = null) {
+  try {
+    console.log("\nrecipeId: ", recipeId, "\n")
+    let recipesToUpdate = [];
+    
+    // If an ingredientId is provided, find all recipes that include this ingredient
+    if (ingredientId) {
+      let sqlFindRecipes = `
+        SELECT DISTINCT recipe_id FROM recipes_ingredients WHERE ingredient_id = ?
+      `;
+      let recipeIds = await executeSQL(sqlFindRecipes, [ingredientId]);
+      recipesToUpdate = recipeIds.map(row => row.recipe_id);
+    }
+    
+    // If a recipeId is provided, we update just this recipe
+    if (recipeId) {
+      recipesToUpdate.push(recipeId);
+    }
+    
+    // Remove duplicates, if any
+    recipesToUpdate = [...new Set(recipesToUpdate)];
+    
+    // Update each recipe's nutritional totals
+    for (const id of recipesToUpdate) {
+      let sqlNutritionTotals = `
+        SELECT SUM(i.calories * ri.quantity / i.serving_size_amount) AS totalCalories,
+               SUM(i.protein * ri.quantity / i.serving_size_amount) AS totalProtein,
+               SUM(i.carbs * ri.quantity / i.serving_size_amount) AS totalCarbs,
+               SUM(i.fats * ri.quantity / i.serving_size_amount) AS totalFats,
+               SUM(i.fiber * ri.quantity / i.serving_size_amount) AS totalFiber,
+               SUM(i.sugar * ri.quantity / i.serving_size_amount) AS totalSugar
+        FROM recipes_ingredients ri
+        JOIN ingredients i ON ri.ingredient_id = i.id
+        WHERE ri.recipe_id = ?
+      `;
+      let totals = await executeSQL(sqlNutritionTotals, [id]);
+      
+      // Update the recipes table with the new totals
+      let sqlUpdateRecipe = `
+        UPDATE recipes SET
+        totalCalories = ?,
+        totalProtein = ?,
+        totalCarbs = ?,
+        totalFats = ?,
+        totalFiber = ?,
+        totalSugar = ?
+        WHERE id = ?
+      `;
+      await executeSQL(sqlUpdateRecipe, [
+        totals[0].totalCalories,
+        totals[0].totalProtein,
+        totals[0].totalCarbs,
+        totals[0].totalFats,
+        totals[0].totalFiber,
+        totals[0].totalSugar,
+        id
+      ]);
+    }
+  } catch (error) {
+    console.error("Error in updateRecipeNutritionTotals:", error);
+    throw error;
+  }
+}
+
 
 
 
