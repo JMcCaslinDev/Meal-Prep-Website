@@ -99,8 +99,10 @@
                     <label for="imageLink" class="form-label">Image URL</label>
                     <input type="text" class="form-control" id="imageLink" name="imageLink" value="<%= data[i].imageLink %>">
                   </div>
-                  <button type="submit" class="btn btn-primary">Save</button>
                 </form>
+              </div>
+              <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Save</button>
                 <button type="button" class="btn btn-danger" onclick="deleteRecipe('<%= userInfo.userId %>', '<%= data[i].id %>')">Delete</button>
               </div>
             </div>
@@ -147,7 +149,7 @@
     document.getElementById('dropdownMenuButton').addEventListener('click', function(event) {
       event.stopPropagation(); // Keep the dropdown open
     });
-    </script>
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/js/editRecipes.js"></script>
 </body>
