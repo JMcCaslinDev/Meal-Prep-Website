@@ -992,11 +992,14 @@ app.get('/myRecipes', async (req, res) => {
   let userIdResults = await executeSQL(sqlUserId, [sessionID]);
   let userId = userIdResults[0].userId;
 
-  // Now, retrieve the recipes along with their ingredients and nutritional info for the given userId
+  // Retrieve all ingredients for the given userId
+  let sqlAllIngredients = `SELECT id, name FROM ingredients WHERE userId = ?;`;
+
+  // Retrieve the recipes along with their ingredients and nutritional info for the given userId
   let sqlRecipes = `
-    SELECT r.id, r.imageLink, r.recipeName, r.instructions, r.ingredientList,
-           ri.quantity, ri.unit, i.name AS ingredientName, 
-           r.totalCalories, r.totalProtein, r.totalCarbs, r.totalFats, r.totalFiber, r.totalSugar
+    SELECT r.id, r.imageLink, r.recipeName, r.instructions,
+           r.totalCalories, r.totalProtein, r.totalCarbs, r.totalFats, r.totalFiber, r.totalSugar,
+           ri.quantity, ri.unit, i.name AS ingredientName
     FROM recipes r
     LEFT JOIN recipes_ingredients ri ON r.id = ri.recipe_id
     LEFT JOIN ingredients i ON ri.ingredient_id = i.id
@@ -1005,9 +1008,11 @@ app.get('/myRecipes', async (req, res) => {
   `;
 
   try {
+    // Execute the queries to get user ingredients and recipes
+    let allIngredientsData = await executeSQL(sqlAllIngredients, [userId]);
     let recipesIngredientsData = await executeSQL(sqlRecipes, [userId]);
 
-    // Organize the data into a structure where each recipe has its associated ingredients
+    // Organize the recipes data
     let recipesData = recipesIngredientsData.reduce((acc, row) => {
       if (!acc[row.id]) {
         acc[row.id] = {
@@ -1015,7 +1020,6 @@ app.get('/myRecipes', async (req, res) => {
           imageLink: row.imageLink,
           recipeName: row.recipeName,
           instructions: row.instructions,
-          ingredientList: row.ingredientList,
           ingredients: [],
           totalCalories: row.totalCalories,
           totalProtein: row.totalProtein,
@@ -1034,18 +1038,22 @@ app.get('/myRecipes', async (req, res) => {
       }
       return acc;
     }, {});
-
-    // Convert the organized data into an array for the EJS template
-    let data = Object.values(recipesData);
-    console.log("\nData object before passed: ", data, "\n");
-
-    // Send the recipes data with nutrition totals to the template
-    res.render('myRecipes', { "userInfo": { userId: userId, username: req.session.username }, "data": data });
+    console.log("\nuserInfo: ", userId, "\n")
+    console.log("\ndata: ", recipesData, "\n")
+    console.log("\nallIngredientsData: ", allIngredientsData, "\n")
+    
+    // Send the recipes data with nutrition totals and all ingredients to the template
+    res.render('myRecipes', {
+      "userInfo": { userId: userId},
+      "data": Object.values(recipesData),
+      "allIngredients": allIngredientsData
+    });
   } catch (error) {
     console.error('Error retrieving recipes and ingredients:', error);
     res.status(500).send('Error retrieving recipes');
   }
 });
+
 
 
 

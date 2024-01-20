@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="/css/myRecipes.css" rel="stylesheet">
-  <title> Recipes </title>
+  <title>Recipes</title>
   <style>
     .no-margin {
       margin: 0;
@@ -14,19 +14,18 @@
 </head>
 <body>
   <%- include("partials/navbar.ejs") %>
-  <h1> <%=userInfo.username%> My Recipes</h1>
+  <h1><%= userInfo.username %> My Recipes</h1>
   <div id="myRecipesFrameTop">
-    <a id="myRecipesInnerFrameTopCreateRecipesButton" class="nav" href= "/createRecipes">Create Custom Recipe</a>
-    <a id="myRecipesInnerFrameTopSearchRecipesButton" class="nav" href= "/recipes">Browse All Recipes</a>
+    <a id="myRecipesInnerFrameTopCreateRecipesButton" class="nav" href="/createRecipes">Create Custom Recipe</a>
+    <a id="myRecipesInnerFrameTopSearchRecipesButton" class="nav" href="/recipes">Browse All Recipes</a>
   </div>
   <div id="myRecipesColumn">
     
     <% for(let i = 0; i < data.length; i++) { %>
       <div class="recipe-box">
-        <div id="recipe-<%=userInfo.userId%>-<%=data[i].id%>"> 
-
+        <div id="recipe-<%= userInfo.userId %>-<%= data[i].id %>"> 
           <div id="recipeInnerFrameTop"> 
-            <img id="recipeInnerFrameTopImg" src="<%=data[i].imageLink%>">
+            <img id="recipeInnerFrameTopImg" src="<%= data[i].imageLink %>">
             <div id="recipeInnerFrameTopName" style="width: calc(100% - 210px);">
               <h1><%= data[i].recipeName %></h1> 
               <div class="nutrition-info">
@@ -37,12 +36,10 @@
                 <div><strong>Fiber:</strong> <span><%= data[i].totalFiber || 'N/A' %> (g)</span></div>
                 <div><strong>Sugar:</strong> <span><%= data[i].totalSugar || 'N/A' %> (g)</span></div>
               </div>
-              <!-- Edit button -->
-              <button type="button" class="btn btn-edit" data-bs-toggle="modal" data-bs-target="#editModal-<%=userInfo.userId%>-<%=data[i].id%>" data-recipe-id="<%=data[i].id%>">Edit</button>
+              <button type="button" class="btn btn-edit" data-bs-toggle="modal" data-bs-target="#editModal-<%= userInfo.userId %>-<%= data[i].id %>" data-recipe-id="<%= data[i].id %>">Edit</button>
             </div>
           </div>
           <div id="WideLine"></div>
-
           <div id="recipeInnerFrameBottom">
             <div id="recipeInnerFrameBottomIngredients">
               <p class="no-margin"><strong>Ingredients: </strong>
@@ -54,59 +51,104 @@
               </p>
             </div>
             <div id="recipeInnerFrameBottomInstructions">
-              <p class="no-margin"><strong>Instructions: </strong> <%= data[i].instructions %></p>
-            </div>
-          </div> 
-
-        </div>
-
-        <!-- Edit Modal -->
-        <div class="modal fade" id="editModal-<%=userInfo.userId%>-<%=data[i].id%>" tabindex="-1" aria-labelledby="editModalLabel-<%=userInfo.userId%>-<%=data[i].id%>" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="editModalLabel-<%=userInfo.userId%>-<%=data[i].id%>">Edit Recipe</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <!-- Edit form goes here -->
-                <form action="/editRecipe" method="post">
-                  <input type="hidden" name="userId" value="<%=userInfo.userId%>">
-                  <input type="hidden" name="recipeId" value="<%=data[i].id%>">
-                  <div class="mb-3">
-                    <label for="recipeName" class="form-label">Recipe Name</label>
-                    <input type="text" class="form-control" id="recipeName" name="recipeName" value="<%=data[i].recipeName%>" required>
-                  </div>
-                  <div class="mb-3">
-                    <label for="ingredientList" class="form-label">Ingredients</label>
-                    <!-- Ingredients should be editable in a textarea or a series of text inputs -->
-                    <textarea class="form-control" id="ingredientList" name="ingredientList" required>
-                      <% data[i].ingredients.forEach(ingredient => { %>
-                        <%= ingredient.quantity + ' ' + ingredient.unit + ' ' + ingredient.name %>\n
-                      <% }); %>
-                    </textarea>
-                  </div>
-                  <div class="mb-3">
-                    <label for="instructions" class="form-label">Instructions</label>
-                    <textarea class="form-control" id="instructions" name="instructions" required><%=data[i].instructions%></textarea>
-                  </div>
-                  <div class="mb-3">
-                    <label for="imageLink" class="form-label">Image URL</label>
-                    <input type="text" class="form-control" id="imageLink" name="imageLink" value="<%=data[i].imageLink%>">
-                  </div>
-                  <button type="submit" class="btn btn-primary">Save</button>
-                </form>
-                <!-- Delete button -->
-                <button type="button" class="btn btn-danger" onclick="deleteRecipe('<%=userInfo.userId%>', '<%=data[i].id%>')">Delete</button>
-              </div>
+              <p class="no-margin"><strong>Instructions: </strong><%= data[i].instructions %></p>
             </div>
           </div>
         </div>
 
+        <!-- Edit Modal -->
+        <div class="modal fade" id="editModal-<%= userInfo.userId %>-<%= data[i].id %>" tabindex="-1" aria-labelledby="editModalLabel-<%= userInfo.userId %>-<%= data[i].id %>" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel-<%= userInfo.userId %>-<%= data[i].id %>">Edit Recipe</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <!-- Edit form starts here -->
+                <form action="/editRecipe" method="post">
+                  <input type="hidden" name="userId" value="<%= userInfo.userId %>">
+                  <input type="hidden" name="recipeId" value="<%= data[i].id %>">
+                  <div class="mb-3">
+                    <label for="recipeName" class="form-label">Recipe Name</label>
+                    <input type="text" class="form-control" id="recipeName" name="recipeName" value="<%= data[i].recipeName %>" required>
+                  </div>
+
+                  <div class="mb-3">
+                    <label for="ingredientList" class="form-label">Ingredients</label>
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      Add Ingredients
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                      <% allIngredients.forEach(ingredient => { %>
+                        <li><a class="dropdown-item" href="#" data-value="<%= ingredient.id %>"><%= ingredient.name %></a></li>
+                      <% }); %>
+                    </ul>
+                    <input type="hidden" id="selectedIngredients" name="ingredientList" />
+                  </div>
+
+                  <div id="ingredientTagsContainer" class="ingredient-tags-container">
+                    <!-- Tags will be added here -->
+                  </div>
+
+                  <div class="mb-3">
+                    <label for="instructions" class="form-label">Instructions</label>
+                    <textarea class="form-control" id="instructions" name="instructions" required><%= data[i].instructions %></textarea>
+                  </div>
+                  <div class="mb-3">
+                    <label for="imageLink" class="form-label">Image URL</label>
+                    <input type="text" class="form-control" id="imageLink" name="imageLink" value="<%= data[i].imageLink %>">
+                  </div>
+                  <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+                <button type="button" class="btn btn-danger" onclick="deleteRecipe('<%= userInfo.userId %>', '<%= data[i].id %>')">Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     <% } %>
   </div>
+  <script>
+    const selectedIngredients = new Set();
+    
+    document.querySelectorAll('.dropdown-item').forEach(item => {
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
+        const value = this.getAttribute('data-value');
+        const name = this.textContent;
+    
+        // Add ingredient to the set of selected ingredients
+        if (!selectedIngredients.has(value)) {
+          selectedIngredients.add(value);
+          this.classList.add('disabled');
+    
+          // Create tag
+          const tag = document.createElement('span');
+          tag.className = 'ingredient-tag';
+          tag.textContent = name;
+          const closeBtn = document.createElement('button');
+          closeBtn.className = 'btn-close-tag';
+          closeBtn.innerHTML = '&times;';
+          closeBtn.onclick = function() {
+            selectedIngredients.delete(value);
+            item.classList.remove('disabled');
+            tag.remove();
+          };
+          tag.appendChild(closeBtn);
+          document.getElementById('ingredientTagsContainer').appendChild(tag);
+        }
+    
+        // Update the hidden input with selected ingredients
+        document.getElementById('selectedIngredients').value = Array.from(selectedIngredients).join(',');
+      });
+    });
+    
+    document.getElementById('dropdownMenuButton').addEventListener('click', function(event) {
+      event.stopPropagation(); // Keep the dropdown open
+    });
+    </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/editRecipes.js"></script>
 </body>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/js/editRecipes.js"></script>
 </html>

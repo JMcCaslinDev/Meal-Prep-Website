@@ -85,15 +85,12 @@ button[type="submit"] {
 
 .ingredient-tag {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    padding: 5px 8px;
     background-color: #e9ecef;
-    border-radius: 10px;
-    padding: 4px 6px;
-    font-size: 0.8rem;
-    margin-top: 5px; /* Space between tags */
-    box-sizing: border-box; /* Include padding and border in the element's total width */
-}
+    border-radius: 15px;
+    gap: 5px;
+  }
 
 .ingredient-tag span {
     margin-right: 5px; /* Add space between the ingredient name and the first text box */
@@ -151,3 +148,23 @@ button[type="submit"] {
     text-decoration: line-through; /* Strikethrough for selected items */
     color: #6c757d; /* Optional: dim the color to indicate it's not selectable */
 }
+
+.ingredient-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+  }
+
+
+  .btn-close-tag {
+    cursor: pointer;
+    border: none;
+    background: none;
+  }
+
+  /* Optional: Style adjustments for the multi-select dropdown */
+#ingredientList {
+    height: auto; /* Adjust height to content */
+    overflow-y: auto; /* Add scroll for overflow */
+  }
