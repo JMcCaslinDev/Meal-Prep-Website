@@ -36,7 +36,7 @@
                 <div><strong>Fiber:</strong> <span><%= data[i].totalFiber || 'N/A' %> (g)</span></div>
                 <div><strong>Sugar:</strong> <span><%= data[i].totalSugar || 'N/A' %> (g)</span></div>
               </div>
-              <button type="button" class="btn btn-edit" data-bs-toggle="modal" data-bs-target="#editModal-<%= userInfo.userId %>-<%= data[i].id %>" data-recipe-id="<%= data[i].id %>">Edit</button>
+              <button type="button" class="btn btn-edit" data-bs-toggle="modal" data-bs-target="#editModal-<%= userInfo.userId %>-<%= data[i].id %>">Edit</button>
             </div>
           </div>
           <div id="WideLine"></div>
@@ -66,7 +66,7 @@
               </div>
               <div class="modal-body">
                 <!-- Edit form starts here -->
-                <form action="/editRecipe" method="post">
+                <form id="editForm-<%= data[i].id %>" action="/editRecipe" method="post">
                   <input type="hidden" name="userId" value="<%= userInfo.userId %>">
                   <input type="hidden" name="recipeId" value="<%= data[i].id %>">
                   <div class="mb-3">
@@ -76,20 +76,21 @@
 
                   <div class="mb-3">
                     <label for="ingredientList" class="form-label">Ingredients</label>
-                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton-<%= data[i].id %>" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                       Add Ingredients
                     </button>
-                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton-<%= data[i].id %>">
                       <% allIngredients.forEach(ingredient => { %>
                         <li><a class="dropdown-item" href="#" data-value="<%= ingredient.id %>"><%= ingredient.name %></a></li>
                       <% }); %>
                     </ul>
-                    <input type="hidden" id="selectedIngredients" name="ingredientList" />
+                    <input type="hidden" id="selectedIngredients-<%= data[i].id %>" name="ingredientList" />
                   </div>
 
-                  <div id="ingredientTagsContainer" class="ingredient-tags-container">
+                  <div id="ingredientTagsContainer-<%= data[i].id %>" class="ingredient-tags-container">
                     <!-- Tags will be added here -->
                   </div>
+
 
                   <div class="mb-3">
                     <label for="instructions" class="form-label">Instructions</label>
@@ -102,7 +103,7 @@
                 </form>
               </div>
               <div class="modal-footer">
-                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('editForm-<%= data[i].id %>').submit();">Save</button>
                 <button type="button" class="btn btn-danger" onclick="deleteRecipe('<%= userInfo.userId %>', '<%= data[i].id %>')">Delete</button>
               </div>
             </div>
@@ -112,42 +113,52 @@
     <% } %>
   </div>
   <script>
-    const selectedIngredients = new Set();
-    
-    document.querySelectorAll('.dropdown-item').forEach(item => {
-      item.addEventListener('click', function(e) {
-        e.preventDefault();
-        const value = this.getAttribute('data-value');
-        const name = this.textContent;
-    
-        // Add ingredient to the set of selected ingredients
-        if (!selectedIngredients.has(value)) {
-          selectedIngredients.add(value);
-          this.classList.add('disabled');
-    
-          // Create tag
-          const tag = document.createElement('span');
-          tag.className = 'ingredient-tag';
-          tag.textContent = name;
-          const closeBtn = document.createElement('button');
-          closeBtn.className = 'btn-close-tag';
-          closeBtn.innerHTML = '&times;';
-          closeBtn.onclick = function() {
-            selectedIngredients.delete(value);
-            item.classList.remove('disabled');
-            tag.remove();
-          };
-          tag.appendChild(closeBtn);
-          document.getElementById('ingredientTagsContainer').appendChild(tag);
-        }
-    
-        // Update the hidden input with selected ingredients
-        document.getElementById('selectedIngredients').value = Array.from(selectedIngredients).join(',');
+    document.addEventListener('DOMContentLoaded', (event) => {
+      document.querySelectorAll('.modal').forEach(modal => {
+        const recipeId = modal.getAttribute('id').split('-').pop();
+        const dropdownMenuButton = modal.querySelector(`button[id^="dropdownMenuButton-"]`);
+        const selectedIngredients = new Set();
+
+        dropdownMenuButton.addEventListener('click', function(event) {
+          event.stopPropagation(); // Keep the dropdown open
+        });
+
+        modal.querySelectorAll('.dropdown-item').forEach(item => {
+          item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const value = this.getAttribute('data-value');
+            const name = this.textContent;
+
+            // Add ingredient to the set of selected ingredients
+            if (!selectedIngredients.has(value)) {
+              selectedIngredients.add(value);
+              this.classList.add('disabled');
+
+              // Create tag
+              const tag = document.createElement('span');
+              tag.className = 'ingredient-tag';
+              tag.textContent = name;
+              const closeBtn = document.createElement('button');
+              closeBtn.className = 'btn-close-tag';
+              closeBtn.innerHTML = '&times;';
+              closeBtn.onclick = function() {
+                selectedIngredients.delete(value);
+                item.classList.remove('disabled');
+                tag.remove();
+              };
+              tag.appendChild(closeBtn);
+              
+              // Append tag to the corresponding ingredient tags container
+              const ingredientTagsContainer = modal.querySelector(`[id^="ingredientTagsContainer-"]`);
+              ingredientTagsContainer.appendChild(tag);
+            }
+
+            // Update the hidden input with selected ingredients
+            const selectedIngredientsInput = modal.querySelector(`[id^="selectedIngredients-"]`);
+            selectedIngredientsInput.value = Array.from(selectedIngredients).join(',');
+          });
+        });
       });
-    });
-    
-    document.getElementById('dropdownMenuButton').addEventListener('click', function(event) {
-      event.stopPropagation(); // Keep the dropdown open
     });
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
