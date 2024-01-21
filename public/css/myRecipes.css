@@ -105,7 +105,6 @@ img {
     border-radius: 50px;
 }
 
-/* Add styles for the modal-footer */
 .modal-footer {
     display: flex;
     justify-content: flex-end; /* Align to the right side */
@@ -113,39 +112,25 @@ img {
     padding: 10px; /* Padding inside the footer area */
 }
 
-/* Style for the Save button */
 .btn-save {
     background-color: #4CAF50; /* Green */
     color: white;
     border: none;
 }
 
-/* Style for the Delete button */
 .btn-delete {
     background-color: #f44336; /* Red */
     color: white;
     border: none;
 }
 
-.no-margin {
-    margin: 0;
-  }
-  /* Add this new style for the modal-footer */
-  .modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 20px;
-    padding: 10px;
-  }
-
-  .ingredient-tags-container {
+.ingredient-tags-container {
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
     margin-top: 10px;
     margin-bottom: 10px;
-  }
-
+}
 
 .ingredient-tag {
     display: flex;
@@ -156,17 +141,17 @@ img {
     border-radius: 15px;
     gap: 5px;
     font-size: small;
-  }
+}
 
-  .btn-close-tag {
+.btn-close-tag {
     cursor: pointer;
     border: none;
     background: none;
     font-size: small;
     padding: 0 3px;
-  }
-  
-  .disabled {
+}
+
+.disabled {
     pointer-events: none;
     opacity: 0.65;
-  }
+}

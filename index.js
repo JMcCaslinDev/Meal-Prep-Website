@@ -927,35 +927,60 @@ app.post('/addIngredient', isAuth, async (req, res) => {
 
 
 
-//  route for editing a recipe
+// route for editing a recipe
 app.post('/editRecipe', async (req, res) => {
   let recipeId = req.body.recipeId;
-
   let recipeName = req.body.recipeName;
-  let ingredientList = req.body.ingredientList;
   let instructions = req.body.instructions;
   let imageLink = req.body.imageLink;
-
-  // Parse the ingredients and convert to JSON
-  let parsedIngredients = parseIngredients(ingredientList);
-  let jsonIngredients = JSON.stringify(parsedIngredients);
-
   let sessionID = req.sessionID;
-  console.log("sessionId: ", sessionID)
+
+  // Extracting the user ID from the session
   let sql = `SELECT userId FROM accounts WHERE sessionId = ?`;
   let result = await executeSQL(sql, [sessionID]);
   let userId = result[0].userId;
 
-  sql = `UPDATE recipes SET recipeName = ?, ingredientList = ?, instructions = ?, imageLink = ?, parsedIngredients = ? WHERE recipeId = ? AND userId = ?`;
-  let params = [recipeName, ingredientList, instructions, imageLink, jsonIngredients, recipeId, userId];
+  // Parse the ingredients data from the JSON string sent by the client
+  let ingredientsData = JSON.parse(req.body.ingredientsData);
+  console.log("Ingredients data received:", ingredientsData);
 
-  await executeSQL(sql, params);
-  console.log('Parsed ingredients: ', jsonIngredients);
+  // Begin a database transaction
+  const connection = await pool.getConnection();
+  await connection.beginTransaction();
 
-  calculateAndUpdateRecipeTotals(recipeId);
-  res.redirect('/myRecipes');
+  try {
+    // Update the recipe information
+    sql = `UPDATE recipes SET recipeName = ?, instructions = ?, imageLink = ? WHERE id = ? AND userId = ?`;
+    await connection.query(sql, [recipeName, instructions, imageLink, recipeId, userId]);
+
+    // Delete existing ingredients for this recipe
+    sql = `DELETE FROM recipes_ingredients WHERE recipe_id = ?`;
+    await connection.query(sql, [recipeId]);
+
+    // Insert new ingredients for this recipe
+    sql = `INSERT INTO recipes_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES (?, ?, ?, ?)`;
+    for (let ingredient of ingredientsData) {
+      await connection.query(sql, [recipeId, ingredient.id, ingredient.quantity, ingredient.unit]);
+    }
+
+    // Commit the transaction
+    await connection.commit();
+
+    // Update recipe totals if necessary
+    await calculateAndUpdateRecipeTotals(recipeId);
+
+    // Redirect to the 'My Recipes' page
+    res.redirect('/myRecipes');
+  } catch (error) {
+    // If there is any error, roll back the transaction
+    await connection.rollback();
+    console.error('Error during edit recipe transaction:', error);
+    res.status(500).send('Error editing recipe');
+  } finally {
+    // Release the connection back to the pool
+    connection.release();
+  }
 });
-
 
 
 
@@ -984,6 +1009,7 @@ app.delete('/deleteRecipe', async (req, res) => {
 });
 
 
+
 app.get('/myRecipes', async (req, res) => {
   let sessionID = req.sessionID;
 
@@ -995,69 +1021,50 @@ app.get('/myRecipes', async (req, res) => {
   // Retrieve all ingredients for the given userId
   let sqlAllIngredients = `SELECT id, name FROM ingredients WHERE userId = ?;`;
 
-  // Retrieve the recipes along with their ingredients and nutritional info for the given userId
-  let sqlRecipes = `
-    SELECT r.id, r.imageLink, r.recipeName, r.instructions,
-           r.totalCalories, r.totalProtein, r.totalCarbs, r.totalFats, r.totalFiber, r.totalSugar,
-           ri.quantity, ri.unit, i.name AS ingredientName
-    FROM recipes r
-    LEFT JOIN recipes_ingredients ri ON r.id = ri.recipe_id
-    LEFT JOIN ingredients i ON ri.ingredient_id = i.id
-    WHERE r.userId = ?
-    ORDER BY r.id, i.name;
-  `;
-
   try {
-    // Execute the queries to get user ingredients and recipes
+    // Execute the query to get all ingredients
     let allIngredientsData = await executeSQL(sqlAllIngredients, [userId]);
-    let recipesIngredientsData = await executeSQL(sqlRecipes, [userId]);
 
-    // Organize the recipes data
-    let recipesData = recipesIngredientsData.reduce((acc, row) => {
-      if (!acc[row.id]) {
-        acc[row.id] = {
-          id: row.id,
-          imageLink: row.imageLink,
-          recipeName: row.recipeName,
-          instructions: row.instructions,
-          ingredients: [],
-          totalCalories: row.totalCalories,
-          totalProtein: row.totalProtein,
-          totalCarbs: row.totalCarbs,
-          totalFats: row.totalFats,
-          totalFiber: row.totalFiber,
-          totalSugar: row.totalSugar
-        };
-      }
-      if (row.ingredientName && row.quantity && row.unit) {
-        acc[row.id].ingredients.push({
-          name: row.ingredientName,
-          quantity: row.quantity,
-          unit: row.unit
-        });
-      }
-      return acc;
-    }, {});
-    console.log("\nuserInfo: ", userId, "\n")
-    console.log("\ndata: ", recipesData, "\n")
+    // Retrieve the recipes for the given userId
+    let sqlRecipes = `SELECT id, imageLink, recipeName, instructions, totalCalories, totalProtein, totalCarbs, totalFats, totalFiber, totalSugar FROM recipes WHERE userId = ?;`;
+    let recipesData = await executeSQL(sqlRecipes, [userId]);
+
+    // For each recipe, fetch the ingredients from recipes_ingredients including the ingredient_id
+    for (let recipe of recipesData) {
+      let sqlIngredients = `
+        SELECT ri.ingredient_id, ri.quantity, ri.unit, i.name
+        FROM recipes_ingredients ri
+        JOIN ingredients i ON ri.ingredient_id = i.id
+        WHERE ri.recipe_id = ?;
+      `;
+
+      let ingredientsData = await executeSQL(sqlIngredients, [recipe.id]);
+      // Include ingredient_id in the recipe's ingredients array
+      recipe.ingredients = ingredientsData.map(ing => ({
+        id: ing.ingredient_id,
+        quantity: ing.quantity,
+        unit: ing.unit,
+        name: ing.name
+      }));
+    }
+
+    console.log("\nuserId: ", userId, "\n")
+    console.log("\nrecipesData: ", recipesData, "\n")
     console.log("\nallIngredientsData: ", allIngredientsData, "\n")
-    
-    // Send the recipes data with nutrition totals and all ingredients to the template
+
+    console.log("\n ingredients object: ", recipesData[0].ingredients, "\n")
+
+    // Send the recipes data with ingredients and all ingredients to the template
     res.render('myRecipes', {
-      "userInfo": { userId: userId},
-      "data": Object.values(recipesData),
-      "allIngredients": allIngredientsData
+      userInfo: { userId: userId },
+      data: recipesData, // Array of recipes, each with an ingredients array including ingredient_id
+      allIngredients: allIngredientsData // Array of all ingredients for the user
     });
   } catch (error) {
     console.error('Error retrieving recipes and ingredients:', error);
     res.status(500).send('Error retrieving recipes');
   }
 });
-
-
-
-
-
 
 
 
@@ -1162,9 +1169,11 @@ async function calculateAndUpdateRecipeTotals(recipeId = null, ingredientId = nu
       const ingredients = await executeSQL(ingredientsSql, [id]);
       let totalCalories = 0, totalProtein = 0, totalCarbs = 0, totalFats = 0, totalFiber = 0, totalSugar = 0;
 
+      console.log("\n ingredients object: ", ingredients, "\n")
       // Calculate the totals for each recipe.
       for (const ingredient of ingredients) {
-        const quantityMultiplier = ingredient.quantity / ingredient.serving_size_amount;
+        const quantityMultiplier = ingredient.quantity;
+        console.log("\ningredient.quantity: ", ingredient.quantity, "\n")
         totalCalories += ingredient.calories * quantityMultiplier;
         totalProtein += ingredient.protein * quantityMultiplier;
         totalCarbs += ingredient.carbs * quantityMultiplier;
@@ -1191,6 +1200,10 @@ async function calculateAndUpdateRecipeTotals(recipeId = null, ingredientId = nu
     throw error;
   }
 }
+
+
+
+
 
 
 //  validate user authorization with database query
@@ -1239,22 +1252,6 @@ function dbConnection() {
 }
 
 
-// //  executes all sql queries
-// async function executeSQL(sql, params) {
-//   return new Promise(function(resolve, reject) {
-//     pool.query(sql, params, function(err, rows, fields) {
-//       if (err) {
-//         console.error("Error in executeSQL:", err);
-//         console.error("SQL Query:", sql);
-//         console.error("Parameters:", params);
-//         // Optionally, log more context or variables here
-//         return reject(err);
-//       }
-//       resolve(rows);
-//     });
-//   });
-// }
-
 //  Executes all SQL queries with promise support using mysql2
 async function executeSQL(sql, params) {
   try {
@@ -1267,10 +1264,6 @@ async function executeSQL(sql, params) {
     throw err; // Rethrow the error for the caller to handle
   }
 }
-
-
-
-
 
 
 //  start server
