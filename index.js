@@ -984,29 +984,42 @@ app.post('/editRecipe', async (req, res) => {
 
 
 
-// route for deleting a recipe
+// Route for deleting a recipe
 app.delete('/deleteRecipe', async (req, res) => {
-  let recipeId = req.body.recipeId;
-  let sessionID = req.sessionID;
+  // Ensure the request body is parsed using express.json() middleware
+  const recipeId = req.body.recipeId;
+  const sessionID = req.sessionID;
 
-  // Get the userId associated with this session
-  let sql = `SELECT userId FROM accounts WHERE sessionId = ?`;
-  let result = await executeSQL(sql, [sessionID]);
-  let userId = result[0].userId;
+  try {
+    // Get the userId associated with this session
+    const sqlUserId = `SELECT userId FROM accounts WHERE sessionId = ?`;
+    const resultUserId = await executeSQL(sqlUserId, [sessionID]);
+    
+    // Check if the userId was successfully retrieved
+    if (resultUserId.length > 0) {
+      const userId = resultUserId[0].userId;
 
-  // Delete the recipe
-  sql = `DELETE FROM recipes WHERE recipeId = ? AND userId = ?`;
-  result = await executeSQL(sql, [recipeId, userId]);
+      // Delete the recipe
+      const sqlDelete = `DELETE FROM recipes WHERE id = ? AND userId = ?`;
+      const resultDelete = await executeSQL(sqlDelete, [recipeId, userId]);
 
-  console.log(`Deleted recipe with ID ${recipeId}, result: ${JSON.stringify(result)}`);
+      console.log(`Attempted to delete recipe with ID ${recipeId}, result: ${JSON.stringify(resultDelete)}`);
 
-  // Respond with a JSON object indicating success
-  if (result.affectedRows > 0) {
-    res.json({ success: true });
-  } else {
-    res.json({ success: false });
+      // Respond with a JSON object indicating success
+      if (resultDelete.affectedRows > 0) {
+        res.json({ success: true, message: `Recipe with ID ${recipeId} successfully deleted.` });
+      } else {
+        res.json({ success: false, message: `Failed to delete recipe with ID ${recipeId}. It may not exist, or you may not have permission to delete it.` });
+      }
+    } else {
+      res.status(401).json({ success: false, message: "Unauthorized: Cannot verify user identity." });
+    }
+  } catch (error) {
+    console.error('Error deleting recipe:', error);
+    res.status(500).json({ success: false, message: 'Internal server error occurred while attempting to delete recipe.' });
   }
 });
+
 
 
 

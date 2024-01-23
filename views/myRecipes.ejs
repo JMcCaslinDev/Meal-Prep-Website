@@ -140,7 +140,8 @@
       });
   
       // Pre-populate the modal with existing ingredient tags
-      const existingIngredients = JSON.parse(modal.querySelector(`#selectedIngredients-${recipeId}`).value);
+      const existingIngredientsInput = modal.querySelector(`#selectedIngredients-${recipeId}`);
+      const existingIngredients = existingIngredientsInput.value ? JSON.parse(existingIngredientsInput.value) : [];
       existingIngredients.forEach(ingredient => {
         if (ingredient.id) {
           const item = modal.querySelector(`.dropdown-item[data-value="${ingredient.id}"]`);
@@ -202,9 +203,9 @@
       const closeBtn = document.createElement('button');
       closeBtn.className = 'btn-close-tag';
       closeBtn.innerHTML = '&times;';
-      closeBtn.onclick = () => {
+      closeBtn.onclick = function(event) {
+        event.preventDefault();
         selectedIngredients.delete(value);
-        item.classList.remove('disabled'); // Enable the dropdown item again
         tag.remove();
         updateSelectedIngredientsInput(selectedIngredients, modal);
       };
@@ -222,46 +223,79 @@
   
     function updateSelectedIngredientsInput(selectedIngredients, modal) {
       const selectedIngredientsInput = modal.querySelector(`#selectedIngredients-${modal.getAttribute('id').split('-').pop()}`);
-      selectedIngredientsInput.value = JSON.stringify(Array.from(selectedIngredients).map(value => {
+      const ingredientsArray = Array.from(selectedIngredients).map(value => {
         const tag = modal.querySelector(`.ingredient-tag[data-value="${value}"]`);
-        return {
+        return tag ? {
           id: value,
           quantity: tag.querySelector('[data-type="quantity"]').value,
           unit: tag.querySelector('[data-type="unit"]').value
-        };
-      }));
+        } : null;
+      }).filter(Boolean); // This will filter out any null values due to deleted tags
+      selectedIngredientsInput.value = JSON.stringify(ingredientsArray);
     }
+
+    async function deleteRecipe(userId, recipeId) {
+    // Prevent the default form submission if called within a form
+    event.preventDefault();
+
+    try {
+      const response = await fetch('/deleteRecipe', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          recipeId: recipeId
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        // Successfully deleted the recipe
+        // Close the modal here
+        $(`#editModal-${userId}-${recipeId}`).modal('hide');
+
+        // Optionally, remove the recipe box from the DOM to update the UI
+        document.querySelector(`.recipe-box[data-recipe-id="${recipeId}"]`).remove();
+      } else {
+        // Handle failure
+        console.error('Failed to delete the recipe');
+      }
+    } catch (error) {
+      console.error('Error deleting recipe:', error);
+    }
+  }
   
     function submitEditForm(recipeId) {
-  const form = document.getElementById(`editForm-${recipeId}`);
-  const ingredientTagsContainer = document.getElementById(`ingredientTagsContainer-${recipeId}`);
+      const form = document.getElementById(`editForm-${recipeId}`);
+      const ingredientTagsContainer = document.getElementById(`ingredientTagsContainer-${recipeId}`);
+      
+      // Collect ingredient data, including quantities and units
+      const ingredientsData = Array.from(ingredientTagsContainer.getElementsByClassName('ingredient-tag'))
+        .map(tag => {
+          const id = tag.getAttribute('data-value');
+          const quantity = tag.querySelector('[data-type="quantity"]').value;
+          const unit = tag.querySelector('[data-type="unit"]').value;
+          return { id, quantity, unit };
+        });
   
-  // Collect ingredient data, including quantities and units
-  const ingredientsData = Array.from(ingredientTagsContainer.getElementsByClassName('ingredient-tag'))
-    .map(tag => {
-      const id = tag.getAttribute('data-value');
-      const quantity = tag.querySelector('[data-type="quantity"]').value;
-      const unit = tag.querySelector('[data-type="unit"]').value;
-      return { id, quantity, unit };
-    });
-
-  // Update the hidden input to store the collected ingredient data
-  const hiddenIngredientInput = form.querySelector('input[name="ingredientsData"]');
-  if (hiddenIngredientInput) {
-    hiddenIngredientInput.value = JSON.stringify(ingredientsData);
-  } else {
-    const newHiddenIngredientInput = document.createElement('input');
-    newHiddenIngredientInput.type = 'hidden';
-    newHiddenIngredientInput.name = 'ingredientsData';
-    newHiddenIngredientInput.value = JSON.stringify(ingredientsData);
-    form.appendChild(newHiddenIngredientInput);
-  }
-
-  // Submit the form
-  form.submit();
-  }
-
+      // Update the hidden input to store the collected ingredient data
+      const hiddenIngredientInput = form.querySelector('input[name="ingredientsData"]');
+      if (hiddenIngredientInput) {
+        hiddenIngredientInput.value = JSON.stringify(ingredientsData);
+      } else {
+        const newHiddenIngredientInput = document.createElement('input');
+        newHiddenIngredientInput.type = 'hidden';
+        newHiddenIngredientInput.name = 'ingredientsData';
+        newHiddenIngredientInput.value = JSON.stringify(ingredientsData);
+        form.appendChild(newHiddenIngredientInput);
+      }
+  
+      // Submit the form
+      form.submit();
+    }
   </script>
+  
 
   <!-- Bootstrap Bundle with Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
