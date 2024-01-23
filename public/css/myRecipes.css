@@ -82,9 +82,6 @@ nav {
     gap: 1rem;
 }
 
-#recipeInnerFrameBottom {
-    background-color: green;
-}
 
 .recipe-box {
     width: 500px; /* fixed width or you could use max-width for responsiveness */
@@ -97,6 +94,12 @@ nav {
     flex-direction: column; /* stack children vertically */
     justify-content: flex-start; /* align children to the start */
     overflow: hidden; /* keeps the content within the borders */
+    transition: background-color 0.5s;
+}
+
+.recipe-box:hover {
+    background-color: lightgray;
+
 }
 
 img {
