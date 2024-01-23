@@ -402,31 +402,54 @@ function getWeekBounds(date) {
 }
 
 
+
 //  displays calendar page with databased saved selections by querying users current database selected meals
 app.get('/calendar', async (req, res) => {
   console.log("\nEntered calendar route \n");
-
-  //  Pull all user recipes from recipes table
-  let sql = `SELECT * FROM recipes`;
-  let data = await executeSQL(sql);
 
   //  Get userId securely given the sessionID
   let userId = await getUserIdFromSessionID(req.sessionID);
   console.log("User ID:", userId);
 
+  // Constants for meal times
+  const mealTimes = {
+    b: '07:00:00',
+    l: '12:00:00',
+    d: '19:00:00'
+  };
+
   //  Hardcode in the now date for Sunday testing purposes
   const now = new Date('2023-08-07T05:15:00Z');
+
+
+
+
+
+  //  Pull all user recipes from recipes table ( by userId only the users for security for development ;)
+
+  let sql = `SELECT * FROM recipes where userId = ?`;
+  let data = await executeSQL(sql, [userId]);
+
+  console.log("\ndata: ", data, "\n")
+
+
+
 
   //  Get Monday and Sunday of each respective week given a date 
   const { start: monday, end: sunday } = getWeekBounds(now);
   console.log("monday_returned_utc: ", monday);
   console.log("sunday_returned_utc: ", sunday);
 
+
+
   //  Convert to string for MySQL date object
   let mondayString = moment(monday).format('YYYY-MM-DD HH:mm:ss');
   let sundayString = moment(sunday).format('YYYY-MM-DD HH:mm:ss');
   console.log("mondayString_utc_formatted: ", mondayString);
   console.log("sundayString_utc_formatted: ", sundayString);
+
+
+
 
   // Fetch all entries for the current week
   sql = `SELECT * 
@@ -435,12 +458,9 @@ app.get('/calendar', async (req, res) => {
   let userCalendarRecipes = await executeSQL(sql, [userId, mondayString, sundayString]);
   console.log("Data for the current week:", userCalendarRecipes);
 
-  // Constants for meal times
-  const mealTimes = {
-    b: '07:00:00',
-    l: '12:00:00',
-    d: '19:00:00'
-  };
+
+
+
 
   // Map userCalendarRecipes to local time
   const mealMap = {};
@@ -456,11 +476,17 @@ app.get('/calendar', async (req, res) => {
     }
   }
 
-  console.log("mealMap: ", mealMap);
+
+
+
+  console.log("\nmealMap: ", mealMap, "\n");
+
 
   // Render the calendar template with mealMap
   res.render('calendar', { "data": data, "mealMap": mealMap });
 });
+
+
 
 
 //  update weeks meal prep selections based on selected dropdowns in calendar page
