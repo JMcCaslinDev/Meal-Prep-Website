@@ -5,99 +5,301 @@
   <meta name="viewport" content="width=device-width">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="/css/myRecipes.css" rel="stylesheet">
-  <title> Recipes </title>
+  <title>Recipes</title>
   <style>
     .no-margin {
       margin: 0;
+    }
+    .ingredient-tag {
+      display: inline-block;
+      margin: 2px;
+      padding: 5px;
+      background-color: #e9ecef;
+      border-radius: 4px;
+    }
+    .btn-close-tag {
+      margin-left: 10px;
+      font-size: 0.7em;
     }
   </style>
 </head>
 <body>
   <%- include("partials/navbar.ejs") %>
-  <h1> <%=userInfo.username%> My Recipes</h1>
+  <h1><%= userInfo.username %> My Recipes</h1>
   <div id="myRecipesFrameTop">
-    <a id="myRecipesInnerFrameTopCreateRecipesButton" class="nav" href= "/createRecipes">Create Custom Recipe</a>
-    <a id="myRecipesInnerFrameTopSearchRecipesButton" class="nav" href= "/recipes">Browse All Recipes</a>
+    <a id="myRecipesInnerFrameTopCreateRecipesButton" class="nav" href="/createRecipes">Create Custom Recipe</a>
+    <a id="myRecipesInnerFrameTopSearchRecipesButton" class="nav" href="/recipes">Browse All Recipes</a>
   </div>
   <div id="myRecipesColumn">
     
-
     <% for(let i = 0; i < data.length; i++) { %>
-      <div class="recipe-box">
-        <div id="recipe-<%=userInfo.userId%>-<%=data[i].recipeId%>"> 
-
+      <div class="recipe-box" data-bs-toggle="modal" data-bs-target="#editModal-<%= userInfo.userId %>-<%= data[i].id %>">
+        <div id="recipe-<%= userInfo.userId %>-<%= data[i].id %>" style="cursor:pointer;"> 
           <div id="recipeInnerFrameTop"> 
-            <img id="recipeInnerFrameTopImg" src="<%=data[i].imageLink%>">
+            <img id="recipeInnerFrameTopImg" src="<%= data[i].imageLink %>">
             <div id="recipeInnerFrameTopName" style="width: calc(100% - 210px);">
               <h1><%= data[i].recipeName %></h1> 
               <div class="nutrition-info">
-                <div><strong>Calories:</strong> <span>xxx</span></div>
-                <div><strong>Protein:</strong> <span>xx g</span></div>
-                <div><strong>Carbs:</strong> <span>xx g</span></div>
-                <div><strong>Fats:</strong> <span>xx g</span></div>
-                <div><strong>Fiber:</strong> <span>xx g</span></div>
-                <div><strong>Sugar:</strong> <span>xx g</span></div>
+                <div><strong>Calories:</strong> <span><%= data[i].totalCalories || 'N/A' %></span></div>
+                <div><strong>Protein:</strong> <span><%= data[i].totalProtein || 'N/A' %> (g)</span></div>
+                <div><strong>Carbs:</strong> <span><%= data[i].totalCarbs || 'N/A' %> (g)</span></div>
+                <div><strong>Fats:</strong> <span><%= data[i].totalFats || 'N/A' %> (g)</span></div>
+                <div><strong>Fiber:</strong> <span><%= data[i].totalFiber || 'N/A' %> (g)</span></div>
+                <div><strong>Sugar:</strong> <span><%= data[i].totalSugar || 'N/A' %> (g)</span></div>
               </div>
-              <!-- Edit button -->
-              <button type="button" class="btn btn-edit" data-bs-toggle="modal" data-bs-target="#editModal-<%=userInfo.userId%>-<%=data[i].recipeId%>" data-recipe-id="<%=data[i].recipeId%>">Edit</button>
             </div>
           </div>
           <div id="WideLine"></div>
-
           <div id="recipeInnerFrameBottom">
             <div id="recipeInnerFrameBottomIngredients">
-              <p class="no-margin"><strong>Ingredients: </strong> <%= data[i].ingredientList %></p>
+              <p class="no-margin"><strong>Ingredients: </strong>
+                <% if(data[i].ingredients && data[i].ingredients.length > 0) { %>
+                  <%= data[i].ingredients.map(ingredient => ingredient.name + ' ' + ingredient.quantity + ' ' + ingredient.unit).join(', ') + '.' %>
+                <% } else { %>
+                  No ingredients listed.
+                <% } %>
+              </p>
             </div>
             <div id="recipeInnerFrameBottomInstructions">
-              <p class="no-margin"><strong>Instructions: </strong> <%= data[i].instructions %></p>
-            </div>
-          </div> 
-
-        </div>
-
-
-        <!-- Edit Modal -->
-        <div class="modal fade" id="editModal-<%=userInfo.userId%>-<%=data[i].recipeId%>" tabindex="-1" aria-labelledby="editModalLabel-<%=userInfo.userId%>-<%=data[i].recipeId%>" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="editModalLabel-<%=userInfo.userId%>-<%=data[i].recipeId%>">Edit Recipe</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <!-- Edit form goes here -->
-                <form action="/editRecipe" method="post">
-                  <input type="hidden" name="userId" value="<%=userInfo.userId%>">
-                  <input type="hidden" name="recipeId" value="<%=data[i].recipeId%>">
-                  <div class="mb-3">
-                    <label for="recipeName" class="form-label">Recipe Name</label>
-                    <input type="text" class="form-control" id="recipeName" name="recipeName" value="<%=data[i].recipeName%>" required>
-                  </div>
-                  <div class="mb-3">
-                    <label for="ingredientList" class="form-label">Ingredients</label>
-                    <textarea class="form-control" id="ingredientList" name="ingredientList" required><%=data[i].ingredientList%></textarea>
-                  </div>
-                  <div class="mb-3">
-                    <label for="instructions" class="form-label">Instructions</label>
-                    <textarea class="form-control" id="instructions" name="instructions" required><%=data[i].instructions%></textarea>
-                  </div>
-                  <div class="mb-3">
-                    <label for="imageLink" class="form-label">Image URL</label>
-                    <input type="text" class="form-control" id="imageLink" name="imageLink" value="<%=data[i].imageLink%>">
-                  </div>
-                  <button type="submit" class="btn btn-primary">Save</button>
-                </form>
-                <!-- Delete button -->
-                <button type="button" class="btn btn-danger" onclick="deleteRecipe('<%=userInfo.userId%>', '<%=data[i].recipeId%>')">Delete</button>
-              </div>
+              <p class="no-margin"><strong>Instructions: </strong><%= data[i].instructions %></p>
             </div>
           </div>
         </div>
+      </div>
 
+      <!-- Edit Modal -->
+      <div class="modal fade" id="editModal-<%= userInfo.userId %>-<%= data[i].id %>" tabindex="-1" aria-labelledby="editModalLabel-<%= userInfo.userId %>-<%= data[i].id %>" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editModalLabel-<%= userInfo.userId %>-<%= data[i].id %>">Edit Recipe</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <!-- Edit form starts here -->
+              <form id="editForm-<%= data[i].id %>" action="/editRecipe" method="post">
+                <input type="hidden" name="userId" value="<%= userInfo.userId %>">
+                <input type="hidden" name="recipeId" value="<%= data[i].id %>">
+                <div class="mb-3">
+                  <label for="recipeName" class="form-label">Recipe Name</label>
+                  <input type="text" class="form-control" id="recipeName" name="recipeName" value="<%= data[i].recipeName %>" required>
+                </div>
+
+                <div class="mb-3">
+                  <label for="ingredientList" class="form-label">Ingredients</label>
+                  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton-<%= data[i].id %>" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Add Ingredients
+                  </button>
+                  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton-<%= data[i].id %>">
+                    <% allIngredients.forEach(ingredient => { %>
+                      <li><a class="dropdown-item" href="#" data-value="<%= ingredient.id %>"><%= ingredient.name %></a></li>
+                    <% }); %>
+                  </ul>
+                  <input type="hidden" id="selectedIngredients-<%= data[i].id %>" name="ingredientList" value='<%= JSON.stringify(data[i].ingredients) %>' />
+                </div>
+
+                <div id="ingredientTagsContainer-<%= data[i].id %>" class="ingredient-tags-container">
+                  <!-- Tags will be added here by the script below -->
+                </div>
+
+                <div class="mb-3">
+                  <label for="instructions" class="form-label">Instructions</label>
+                  <textarea class="form-control" id="instructions" name="instructions" required><%= data[i].instructions %></textarea>
+                </div>
+                <div class="mb-3">
+                  <label for="imageLink" class="form-label">Image URL</label>
+                  <input type="text" class="form-control" id="imageLink" name="imageLink" value="<%= data[i].imageLink %>">
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" onclick="submitEditForm('<%= data[i].id %>')">Save</button>
+              <button type="button" class="btn btn-danger" onclick="deleteRecipe('<%= userInfo.userId %>', '<%= data[i].id %>')">Delete</button>
+            </div>
+          </div>
+        </div>
       </div>
     <% } %>
   </div>
+
+  <script>
+    // Initialize modals and handle ingredient selection
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.modal').forEach(modal => {
+        initializeModal(modal);
+      });
+    });
+  
+    function initializeModal(modal) {
+      const recipeId = modal.getAttribute('id').split('-').pop();
+      const dropdownMenuButton = modal.querySelector(`button[id^="dropdownMenuButton-"]`);
+      const selectedIngredients = new Set();
+  
+      dropdownMenuButton.addEventListener('click', (event) => {
+        event.stopPropagation(); // Keep the dropdown open
+      });
+  
+      // Pre-populate the modal with existing ingredient tags
+      const existingIngredientsInput = modal.querySelector(`#selectedIngredients-${recipeId}`);
+      const existingIngredients = existingIngredientsInput.value ? JSON.parse(existingIngredientsInput.value) : [];
+      existingIngredients.forEach(ingredient => {
+        if (ingredient.id) {
+          const item = modal.querySelector(`.dropdown-item[data-value="${ingredient.id}"]`);
+          if (item) {
+            item.classList.add('disabled');
+            selectedIngredients.add(ingredient.id);
+            createIngredientTag(item.textContent, ingredient.id, ingredient.quantity, ingredient.unit, selectedIngredients, modal);
+          }
+        }
+      });
+  
+      modal.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', (e) => handleIngredientSelection(e, item, selectedIngredients, modal));
+      });
+    }
+  
+    function handleIngredientSelection(e, item, selectedIngredients, modal) {
+      e.preventDefault();
+      const value = item.getAttribute('data-value');
+      const name = item.textContent;
+  
+      if (!selectedIngredients.has(value)) {
+        selectedIngredients.add(value);
+        item.classList.add('disabled');
+        createIngredientTag(name, value, '', '', selectedIngredients, modal);
+      }
+    }
+  
+    function createIngredientTag(name, value, quantity, unit, selectedIngredients, modal) {
+      const tag = document.createElement('span');
+      tag.className = 'ingredient-tag';
+      tag.setAttribute('data-value', value);
+  
+      // Text node for the ingredient name
+      const textNode = document.createTextNode(name + " ");
+      tag.appendChild(textNode);
+  
+      // Create input for quantity
+      const quantityInput = document.createElement('input');
+      quantityInput.type = 'text';
+      quantityInput.placeholder = 'Quantity';
+      quantityInput.className = 'form-control mx-2';
+      quantityInput.style.width = 'auto';
+      quantityInput.value = quantity; // Set the quantity value
+      quantityInput.setAttribute('data-id', value);
+      quantityInput.setAttribute('data-type', 'quantity');
+  
+      // Create input for unit
+      const unitInput = document.createElement('input');
+      unitInput.type = 'text';
+      unitInput.placeholder = 'Unit';
+      unitInput.className = 'form-control mx-2';
+      unitInput.style.width = 'auto';
+      unitInput.value = unit; // Set the unit value
+      unitInput.setAttribute('data-id', value);
+      unitInput.setAttribute('data-type', 'unit');
+  
+      // Create close button
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'btn-close-tag';
+      closeBtn.innerHTML = '&times;';
+      closeBtn.onclick = function(event) {
+        event.preventDefault();
+        selectedIngredients.delete(value);
+        tag.remove();
+        updateSelectedIngredientsInput(selectedIngredients, modal);
+      };
+  
+      // Append children to the tag
+      tag.appendChild(quantityInput);
+      tag.appendChild(unitInput);
+      tag.appendChild(closeBtn);
+  
+      // Append tag to the container
+      const container = modal.querySelector(`#ingredientTagsContainer-${modal.getAttribute('id').split('-').pop()}`);
+      container.appendChild(tag);
+      updateSelectedIngredientsInput(selectedIngredients, modal);
+    }
+  
+    function updateSelectedIngredientsInput(selectedIngredients, modal) {
+      const selectedIngredientsInput = modal.querySelector(`#selectedIngredients-${modal.getAttribute('id').split('-').pop()}`);
+      const ingredientsArray = Array.from(selectedIngredients).map(value => {
+        const tag = modal.querySelector(`.ingredient-tag[data-value="${value}"]`);
+        return tag ? {
+          id: value,
+          quantity: tag.querySelector('[data-type="quantity"]').value,
+          unit: tag.querySelector('[data-type="unit"]').value
+        } : null;
+      }).filter(Boolean); // This will filter out any null values due to deleted tags
+      selectedIngredientsInput.value = JSON.stringify(ingredientsArray);
+    }
+
+    async function deleteRecipe(userId, recipeId) {
+    // Prevent the default form submission if called within a form
+    event.preventDefault();
+
+    try {
+      const response = await fetch('/deleteRecipe', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          recipeId: recipeId
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        // Successfully deleted the recipe
+        // Close the modal here
+        $(`#editModal-${userId}-${recipeId}`).modal('hide');
+
+        // Optionally, remove the recipe box from the DOM to update the UI
+        document.querySelector(`.recipe-box[data-recipe-id="${recipeId}"]`).remove();
+      } else {
+        // Handle failure
+        console.error('Failed to delete the recipe');
+      }
+    } catch (error) {
+      console.error('Error deleting recipe:', error);
+    }
+  }
+  
+    function submitEditForm(recipeId) {
+      const form = document.getElementById(`editForm-${recipeId}`);
+      const ingredientTagsContainer = document.getElementById(`ingredientTagsContainer-${recipeId}`);
+      
+      // Collect ingredient data, including quantities and units
+      const ingredientsData = Array.from(ingredientTagsContainer.getElementsByClassName('ingredient-tag'))
+        .map(tag => {
+          const id = tag.getAttribute('data-value');
+          const quantity = tag.querySelector('[data-type="quantity"]').value;
+          const unit = tag.querySelector('[data-type="unit"]').value;
+          return { id, quantity, unit };
+        });
+  
+      // Update the hidden input to store the collected ingredient data
+      const hiddenIngredientInput = form.querySelector('input[name="ingredientsData"]');
+      if (hiddenIngredientInput) {
+        hiddenIngredientInput.value = JSON.stringify(ingredientsData);
+      } else {
+        const newHiddenIngredientInput = document.createElement('input');
+        newHiddenIngredientInput.type = 'hidden';
+        newHiddenIngredientInput.name = 'ingredientsData';
+        newHiddenIngredientInput.value = JSON.stringify(ingredientsData);
+        form.appendChild(newHiddenIngredientInput);
+      }
+  
+      // Submit the form
+      form.submit();
+    }
+  </script>
+  
+
+  <!-- Bootstrap Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Your additional scripts if any -->
+  <script src="/js/editRecipes.js"></script>
 </body>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/js/editRecipes.js"></script>
 </html>
