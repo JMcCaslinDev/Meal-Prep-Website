@@ -37,15 +37,13 @@ This application is a comprehensive web-based tool designed for meal preparation
 [Guide on how to use the application, possibly with screenshots or GIFs demonstrating key features.]
 
 ## Planned Features and Next Steps
-1. **Macros and Calories Integration**: Update the application to ensure that macros and calories are properly recorded for ingredients and recipes. This involves adjusting the backend `POST` request handling to include all necessary fields and ensure that the MySQL database is updated accordingly.
+1. **Meal Calendar Enhancement**: Implement the ability to select meals for different weeks or specific dates and automate the meal calendar based on calorie and macro requirements.
 
-2. **Meal Calendar Enhancement**: Implement the ability to select meals for different weeks or specific dates and automate the meal calendar based on calorie and macro requirements.
+2. **Cook Meals Page Functionality**: Finalize the cook meals page to include dynamic updating of databases based on the recipes being cooked and eaten.
 
-3. **Cook Meals Page Functionality**: Finalize the cook meals page to include dynamic updating of databases based on the recipes being cooked and eaten.
+3. **Shopping List and Fridge Improvements**: Ensure that the shopping list and fridge are fully dynamic, allowing for real-time updates and editing capabilities through modals or in-line editing.
 
-4. **Shopping List and Fridge Improvements**: Ensure that the shopping list and fridge are fully dynamic, allowing for real-time updates and editing capabilities through modals or in-line editing.
-
-5. **User Interface Refinement**: Continue enhancing the aesthetic and functional aspects of the user interface, focusing on improving user experience across all pages. This involves streamlining navigation, ensuring responsive design for various devices, and integrating intuitive design elements that facilitate user interaction with the application's features.
+4. **User Interface Refinement**: Continue enhancing the aesthetic and functional aspects of the user interface, focusing on improving user experience across all pages. This involves streamlining navigation, ensuring responsive design for various devices, and integrating intuitive design elements that facilitate user interaction with the application's features.
 
 ## Contributing
 [Guidelines for contributing to the project, including code style, commit message format, etc.] Adding later
