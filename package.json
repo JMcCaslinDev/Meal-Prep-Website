@@ -22,6 +22,7 @@
     "express-session": "^1.17.3",
     "moment-timezone": "^0.5.43",
     "mysql": "^2.18.1",
+    "mysql2": "^3.7.0",
     "node-fetch": "^3.2.6",
     "sessionstorage": "^0.1.0",
     "uuid": "^9.0.0"

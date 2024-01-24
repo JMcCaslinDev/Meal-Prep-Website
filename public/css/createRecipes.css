@@ -1,0 +1,170 @@
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background: linear-gradient(#c0cccb, #89918f);
+    color: black;
+    font-family: 'Arial', sans-serif;
+}
+
+h1 {
+    margin-top: 52px;
+    margin-bottom: 10px;
+    top: 0;
+}
+
+nav {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #B9BBC1;
+    top: 0;
+    width: 100%;
+    position: absolute;
+}
+
+.nav {
+    float: left;
+    display: block;
+    color: darkslategray;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+#formBox {
+    padding: 10px;
+    background-color: #B9BBC1;
+    width: auto;
+    border-radius: 10px;
+}
+
+.mb-3 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.form-label {
+    text-align: right;
+    margin-right: 10px;
+    flex: 0 0 140px;
+}
+
+.form-control {
+    flex-grow: 1;
+    display: block;
+    width: 100%;
+}
+
+@media (min-width: 576px) {
+    .form-control {
+        max-width: 250px;
+    }
+}
+
+button[type="submit"] {
+    display: block;
+    width: 100%;
+    margin-top: 20px;
+}
+
+/* Tag styles */
+.selected-ingredients-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.ingredient-tag {
+    display: flex;
+    align-items: center;
+    padding: 5px 8px;
+    background-color: #e9ecef;
+    border-radius: 15px;
+    gap: 5px;
+  }
+
+.ingredient-tag span {
+    margin-right: 5px; /* Add space between the ingredient name and the first text box */
+}
+
+/* textbox placeholder text color */
+.ingredient-tag input[type="text"]::placeholder {
+    color: #6c757d;
+    margin: 0 5px;
+}
+
+.ingredient-tag .remove-ingredient {
+    background-color: transparent;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+}
+
+.ingredient-tag .remove-ingredient:hover {
+    text-emphasis-color: #000000;
+}
+
+/* Smaller input fields with no outer spacing */
+.ingredient-tag .quantity-input {
+    width: 60px; /* Adjust width as needed */
+}
+
+.ingredient-tag .unit-input {
+    width: 60px; /* Adjust width as needed */
+}
+
+/* Adjustments for the 'x' button to make it less prominent */
+.ingredient-tag .remove-ingredient {
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    padding: 0;
+    margin-left: 5px;
+    font-size: 0.7rem;
+}
+
+.ingredient-tag input[type="text"] {
+    width: auto; /* Adjust width as needed */
+    padding: 2px 6px; /* Smaller padding to fit the tag size */
+}
+
+#selectedIngredients {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+/* New style for selected options in dropdown */
+.selected-option {
+    text-decoration: line-through; /* Strikethrough for selected items */
+    color: #6c757d; /* Optional: dim the color to indicate it's not selectable */
+}
+
+.ingredient-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+  }
+
+
+  .btn-close-tag {
+    cursor: pointer;
+    border: none;
+    background: none;
+  }
+
+  /* Optional: Style adjustments for the multi-select dropdown */
+#ingredientList {
+    height: auto; /* Adjust height to content */
+    overflow-y: auto; /* Add scroll for overflow */
+  }

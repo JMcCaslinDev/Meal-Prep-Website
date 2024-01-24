@@ -1,0 +1,160 @@
+body {
+    display: flex;
+    flex-direction: column; /* Stack children vertically */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    min-height: 100vh; /* Full height of the viewport */
+    margin: 0;
+    background: linear-gradient(#c0cccb, #89918f);
+    color: black;
+    font-family: 'Arial', sans-serif;
+}
+
+h1 {
+    margin-top: 52px;
+    margin-bottom: 10px;
+    top: 0;
+}
+
+nav {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #B9BBC1;
+    top: 0;
+    width: 100%;
+    position: absolute;
+}
+
+.nav {
+    float: left;
+    display: block;
+    color: darkslategray;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+.mb-3 {
+    display: flex; /* Use flexbox */
+    flex-direction: row; /* Layout elements in a row */
+    align-items: center; /* Center align the items vertically */
+    margin-bottom: 10px; /* Reduce margin to decrease space */
+}
+
+.form-label {
+    margin-right: 10px; /* Space between label and input */
+    flex: 0 0 140px; /* Set a fixed width for labels */
+}
+
+.form-control {
+    flex-grow: 1; /* Allow the input to grow and fill the space */
+    display: block;
+    width: 100%; /* Full width of the parent */
+}
+
+/* Adjust the max-width for different screen sizes */
+@media (min-width: 576px) {
+    .form-control {
+        max-width: 250px; /* Adjust this as needed */
+    }
+}
+
+#myRecipesColumn {
+    background-color: #B9BBC1;
+}
+
+#myRecipesFrameTop {
+    margin-bottom: 50px;
+}
+
+#WideLine {
+    height: 2px;
+    background-color: darkslategray;
+    margin-top: 10px;
+    margin-bottom: 10px; 
+}
+
+#recipeInnerFrameTop {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+
+.recipe-box {
+    width: 500px; /* fixed width or you could use max-width for responsiveness */
+    min-height: 200px; /* minimum height to ensure boxes aren't too small */
+    background-color: whitesmoke;
+    margin: 20px;
+    border-radius: 10px;
+    padding: 10px;
+    display: flex; /* enables flex content */
+    flex-direction: column; /* stack children vertically */
+    justify-content: flex-start; /* align children to the start */
+    overflow: hidden; /* keeps the content within the borders */
+    transition: background-color 0.5s;
+}
+
+.recipe-box:hover {
+    background-color: lightgray;
+
+}
+
+img {
+    width: 200px;
+    height: 200px;
+    border-radius: 50px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end; /* Align to the right side */
+    gap: 10px; /* Space between buttons */
+    padding: 10px; /* Padding inside the footer area */
+}
+
+.btn-save {
+    background-color: #4CAF50; /* Green */
+    color: white;
+    border: none;
+}
+
+.btn-delete {
+    background-color: #f44336; /* Red */
+    color: white;
+    border: none;
+}
+
+.ingredient-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.ingredient-tag {
+    display: flex;
+    align-items: center;
+    padding: 3px 6px;
+    background-color: #e9ecef;
+    border: 1px solid #adb5bd;
+    border-radius: 15px;
+    gap: 5px;
+    font-size: small;
+}
+
+.btn-close-tag {
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-size: small;
+    padding: 0 3px;
+}
+
+.disabled {
+    pointer-events: none;
+    opacity: 0.65;
+}

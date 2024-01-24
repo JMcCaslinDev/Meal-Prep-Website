@@ -4,37 +4,72 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Ingredients</title>
-    <link href="/css/style.css" rel="stylesheet">
+    <link href="/css/ingredients.css" rel="stylesheet">
 </head>
 <body>
     <%- include("partials/navbar.ejs") %>
     <h1>Add Ingredients</h1>
+    <div id="formFrame">
     <form action="/addIngredient" method="post">
-        <div>
+
+        <div class="form-group">
             <label for="name">Ingredient Name:</label>
             <input type="text" id="name" name="name" required>
         </div>
-        <div>
+
+        <div class="form-group">
             <label for="calories">Calories:</label>
-            <input type="number" id="calories" name="calories" required>
+            <input type="number" id="calories" name="calories" step="any" required>
         </div>
-        <div>
+
+        <div class="form-group">
             <label for="protein">Protein (g):</label>
-            <input type="number" id="protein" name="protein" step="any" required>
+            <input type="number" id="protein" name="protein" step="any">
         </div>
-        <div>
-            <label for="carbs">Carbohydrates (g):</label>
-            <input type="number" id="carbs" name="carbs" step="any" required>
+
+        <div class="form-group">
+            <label for="carbs">Carbs (g):</label>
+            <input type="number" id="carbs" name="carbs" step="any">
         </div>
-        <div>
+
+        <div class="form-group">
             <label for="fats">Fats (g):</label>
-            <input type="number" id="fats" name="fats" step="any" required>
+            <input type="number" id="fats" name="fats" step="any">
         </div>
-        <div>
-            <label for="quantity">Quantity:</label>
-            <input type="number" id="quantity" name="quantity" required>
+
+        <div class="form-group">
+            <label for="fiber">Fiber (g):</label>
+            <input type="number" id="fiber" name="fiber" step="any">
         </div>
+
+        <div class="form-group">
+            <label for="sugar">Sugar (g):</label>
+            <input type="number" id="sugar" name="sugar" step="any">
+        </div>
+
+        <div class="form-group">
+            <label for="serving_size_description">Serving Size Description:</label>
+            <input type="text" id="serving_size_description" name="serving_size_description">
+        </div>
+
+        <div class="form-group">
+            <label for="serving_size_amount">Serving Size Amount:</label>
+            <input type="text" id="serving_size_amount" name="serving_size_amount">
+        </div>
+
+        <div class="form-group">
+            <label for="total_weight_in_grams">Weight (g):</label>
+           
+            <input type="number" id="total_weight_in_grams" name="total_weight_in_grams" step="any">
+        </div>
+
+        <div class="form-group">
+            <label for="price_per_unit">Price Per Unit:</label>
+            <input type="number" id="price_per_unit" name="price_per_unit" step="any">
+        </div>
+
         <button type="submit">Add Ingredient</button>
     </form>
+    </div>
 </body>
-</html>
+</html>    

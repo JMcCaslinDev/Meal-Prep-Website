@@ -1,0 +1,80 @@
+body {
+    margin-top: 52px;
+    background: #f8f9fa; /* Light gray background */
+    font-family: 'Arial', sans-serif; /* Standard font for clean look */
+  }
+  
+  .week-selector {
+    display: flex;
+    justify-content: center; /* Center week selector on the page */
+    margin-bottom: 20px;
+    align-items: center;
+  }
+  
+  #prev-week, #next-week {
+    margin: 0 15px; /* Spacing between navigation buttons */
+  }
+  
+  #week-select {
+    padding: 5px 10px; /* More clickable area */
+    font-size: 1rem; /* Larger font for readability */
+  }
+  
+  .calendar-container {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 15px; /* Increased gap for better spacing */
+    padding: 20px;
+    max-width: 1200px; /* Max width to prevent too wide columns on large screens */
+    margin: auto; /* Center the grid in the middle of the page */
+  }
+  
+  .day-column {
+    border: 1px solid #ddd; /* Lighter border color */
+    border-radius: 8px; /* Rounded corners */
+    padding: 20px; /* More internal spacing */
+    background-color: #ffffff; /* White background for columns */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+  }
+  
+  .day-header {
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.2rem; /* Larger text for headers */
+    margin-bottom: 20px; /* More space below headers */
+    color: #333; /* Darker color for better contrast */
+    background-color: #f2f2f2; /* Slight background for headers */
+    padding: 10px 0; /* Padding for aesthetic header */
+    border-radius: 4px; /* Rounded corners for header background */
+  }
+  
+  .meal-tag {
+    display: block;
+    margin: 10px 0; /* More vertical space between tags */
+    padding: 10px; /* Bigger clickable area */
+    background-color: #e9ecef; /* Bootstrap-like gray for tags */
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center; /* Center text in tags */
+    font-size: 0.9rem; /* Smaller font for tags */
+  }
+  
+  .save-button {
+    display: block;
+    width: 200px; /* Fixed width for save button */
+    padding: 15px; /* Taller button for better clickability */
+    margin: 30px auto; /* Center button and more space from grid */
+    font-size: 1rem;
+    color: white;
+    background-color: #28a745; /* Bootstrap success green for save button */
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Button shadow for depth */
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
+  }
+  
+  .save-button:hover {
+    background-color: #218838; /* Slightly darker on hover for feedback */
+  }
+  
