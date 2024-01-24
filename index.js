@@ -403,88 +403,59 @@ function getWeekBounds(date) {
 
 
 
-//  displays calendar page with databased saved selections by querying users current database selected meals
+//  Displays the calendar page without querying user's current database selected meals
 app.get('/calendar', async (req, res) => {
   console.log("\nEntered calendar route \n");
 
-  //  Get userId securely given the sessionID
-  let userId = await getUserIdFromSessionID(req.sessionID);
-  console.log("User ID:", userId);
-
-  // Constants for meal times
-  const mealTimes = {
-    b: '07:00:00',
-    l: '12:00:00',
-    d: '19:00:00'
-  };
-
-  //  Hardcode in the now date for Sunday testing purposes
-  const now = new Date('2023-08-07T05:15:00Z');
+  // Render the calendar template
+  // No data is passed to the template regarding meals, as it will be handled by client-side JS
+  res.render('calendar');
+});
 
 
 
+app.get('/api/week-data', async (req, res) => {
+  console.log("\nEntered api/week-data route\n")
 
+  // Extract the week number from the query parameters
+  const weekNumber = parseInt(req.query.week);
 
-  //  Pull all user recipes from recipes table ( by userId only the users for security for development ;)
+  console.log("\nweekNumber: ", weekNumber, "\n")
 
-  let sql = `SELECT * FROM recipes where userId = ?`;
-  let data = await executeSQL(sql, [userId]);
-
-  console.log("\ndata: ", data, "\n")
-
-
-
-
-  //  Get Monday and Sunday of each respective week given a date 
-  const { start: monday, end: sunday } = getWeekBounds(now);
-  console.log("monday_returned_utc: ", monday);
-  console.log("sunday_returned_utc: ", sunday);
-
-
-
-  //  Convert to string for MySQL date object
-  let mondayString = moment(monday).format('YYYY-MM-DD HH:mm:ss');
-  let sundayString = moment(sunday).format('YYYY-MM-DD HH:mm:ss');
-  console.log("mondayString_utc_formatted: ", mondayString);
-  console.log("sundayString_utc_formatted: ", sundayString);
-
-
-
-
-  // Fetch all entries for the current week
-  sql = `SELECT * 
-         FROM mealCalendar 
-         WHERE userId = ? AND timeSlot BETWEEN ? AND ?`;
-  let userCalendarRecipes = await executeSQL(sql, [userId, mondayString, sundayString]);
-  console.log("Data for the current week:", userCalendarRecipes);
-
-
-
-
-
-  // Map userCalendarRecipes to local time
-  const mealMap = {};
-  for (const row of userCalendarRecipes) {
-    const time = moment(row.timeSlot).tz('America/Los_Angeles');
-    const day = time.format('ddd').toLowerCase();
-    const timeString = time.format('HH:mm:ss');
-    for (const [meal, mealTime] of Object.entries(mealTimes)) {
-      if (timeString === mealTime) {
-        mealMap[meal + day] = row.recipeId;
-        break;
-      }
-    }
+  // Check if the weekNumber is a valid number
+  if (isNaN(weekNumber) || weekNumber < 0 || weekNumber > 52) {
+    return res.status(400).send('Invalid week number');
   }
 
+  try {
+    // Use the session ID to get the user ID
+    const userId = await getUserIdFromSessionID(req.sessionID);
 
+    // Calculate the date range for the requested week number
+    const year = new Date().getFullYear(); // Use the current year or a different logic if required
+    const startDate = moment().year(year).week(weekNumber).startOf('isoWeek');
+    const endDate = moment(startDate).endOf('isoWeek');
 
+    // Convert to string for MySQL
+    const startString = startDate.format('YYYY-MM-DD HH:mm:ss');
+    const endString = endDate.format('YYYY-MM-DD HH:mm:ss');
 
-  console.log("\nmealMap: ", mealMap, "\n");
+    console.log("\nstartString: ", startString, "\n")
+    console.log("\nendString: ", endString, "\n")
 
+    // Fetch meal data for the user within the calculated date range
+    const sql = `SELECT * FROM mealCalendar WHERE userId = ? AND timeSlot BETWEEN ? AND ?`;
+    const meals = await executeSQL(sql, [userId, startString, endString]);
+    console.log("\nMeals: ", meals, "\n")
 
-  // Render the calendar template with mealMap
-  res.render('calendar', { "data": data, "mealMap": mealMap });
+    // Return the meal data as JSON
+    res.json({ meals: meals });
+  } catch (error) {
+    console.error("Error fetching week data:", error);
+    res.status(500).send('Error fetching data for the week.');
+  }
 });
+
 
 
 

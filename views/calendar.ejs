@@ -1,55 +1,38 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
-  <link href="/css/style.css" rel="stylesheet">
-  <title> Meal Calendar </title>
+  <link href="/css/calendar.css" rel="stylesheet">
+  <title>Meal Calendar</title>
 </head>
+
 <body>
- <%- include("partials/navbar.ejs") %>
+  <%- include("partials/navbar.ejs") %>
 
-  <form action="/weekRecipes" method="POST">
-   <table>
-    <tr>
-      <th> </th>
-      <th>Monday</th>
-      <th>Tuesday</th>
-      <th>Wednesday</th>
-      <th>Thursday</th>
-      <th>Friday</th>
-      <th>Saturday</th>
-      <th>Sunday</th>
-    </tr>
+  <div class="week-selector">
+    <button id="prev-week">Previous Week</button>
+    <select id="week-select">
+      <% for (let i = 0; i <= 52; i++) { %>
+        <option value="<%= i %>">Week <%= i %></option>
+      <% } %>
+    </select>
+    <button id="next-week">Next Week</button>
+  </div>
 
-    <% const meals = ['b', 'l', 'd']; %>
-    <% const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']; %>
-    <%= JSON.stringify(mealMap) %>
-    <% for (let meal of meals) { %>
-      <tr>
-        <th><%= meal == 'b' ? 'Breakfast' : meal == 'l' ? 'Lunch' : 'Dinner' %></th>
-        <% for (let day of days) { %>
-          <td>
-            <select name="<%= meal + day %>">
-              <% let selectedRecipeId = mealMap[meal + day.toLowerCase()]; %>
-              <option value="-1" <%= selectedRecipeId == null ? 'selected' : '' %>>Select Meal</option>
-                
-              <% for(let i = 0; i < data.length; i++) { %>   
-                  <option value="<%=data[i].recipeId%>" <%=data[i].recipeId == selectedRecipeId ? 'selected' : '' %>> <%=data[i].recipeName%> </option>
-              <% } %>
-                
-            </select>
-          </td>
-        <% } %>
-      </tr>
-    <% } %>
+  <div class="calendar-container">
+    <% const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']; %>
+    <% days.forEach(day => { %>
+      <div class="day-column">
+        <div class="day-header"><%= day %></div>
+        <!-- Placeholder for meals, to be populated by calendar.js -->
+      </div>
+    <% }) %>
+  </div>
 
-    <tr>
-    </tr>
-  </table>
-    <button> Save </button>
-</form>
-  <script src="js/script.js"></script>
+  <button id="save-button" class="save-button">Save</button>
+
+  <script src="/js/calendar.js"></script>
 </body>
 </html>
