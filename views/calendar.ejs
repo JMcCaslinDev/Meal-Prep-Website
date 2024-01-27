@@ -23,15 +23,24 @@
 
   <div class="calendar-container">
     <% const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']; %>
-    <% days.forEach(day => { %>
+    <% days.forEach((day, index) => { %>
       <div class="day-column">
-        <div class="day-header"><%= day %></div>
+        <div class="day-header">
+          <%= day %>
+        </div>
         <!-- Placeholder for meals, to be populated by calendar.js -->
+        <div class="meal-slot-container" id="meal-slot-<%= index %>">
+          <!-- Meals will be added here by calendar.js -->
+        </div>
+        <!-- Add Meal button for each day -->
+        <button class="add-meal-button btn btn-primary btn-sm" data-day="<%= index %>">Add Meal</button>
+        <!-- Dropdown will be populated with meals by calendar.js -->
+        <div class="meal-dropdown" id="meal-dropdown-<%= index %>" style="display:none;"></div>
       </div>
     <% }) %>
   </div>
 
-  <button id="save-button" class="save-button">Save</button>
+  <button id="save-button" class="btn btn-success">Save</button>
 
   <script src="/js/calendar.js"></script>
 </body>

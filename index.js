@@ -43,7 +43,7 @@ app.use(session({
   saveUninitialized: true,
   cookie: {
     secure: false,  //if true, requires signed not resigned cookies if using local host must be false
-    maxAge: 1000 * 60 * 30 // expires after 30 minutes
+    maxAge: 1000 * 60 * 60 // expires after 60 minutes (second 60)
   }
 }))
 
@@ -413,7 +413,7 @@ app.get('/calendar', async (req, res) => {
 });
 
 
-
+//  Essentially the new version of the calendar get function
 app.get('/api/week-data', async (req, res) => {
   console.log("\nEntered api/week-data route\n")
 
@@ -447,12 +447,31 @@ app.get('/api/week-data', async (req, res) => {
     const sql = `SELECT * FROM mealCalendar WHERE userId = ? AND timeSlot BETWEEN ? AND ?`;
     const meals = await executeSQL(sql, [userId, startString, endString]);
     console.log("\nMeals: ", meals, "\n")
-
+          
     // Return the meal data as JSON
     res.json({ meals: meals });
   } catch (error) {
     console.error("Error fetching week data:", error);
     res.status(500).send('Error fetching data for the week.');
+  }
+});
+
+
+// API route to get all recipes for the current user
+app.get('/api/user-recipes', async (req, res) => {
+  try {
+      // Use the session ID to get the user ID
+      const userId = await getUserIdFromSessionID(req.sessionID);
+
+      // Fetch all recipes from the 'recipes' table that belong to the user
+      const sql = `SELECT recipeId, recipeName FROM recipes WHERE userId = ?`;
+      const userRecipes = await executeSQL(sql, [userId]);
+
+      // Return the recipes as JSON
+      res.json(userRecipes);
+  } catch (error) {
+      console.error("Error fetching user recipes:", error);
+      res.status(500).send('Error fetching user recipes.');
   }
 });
 
