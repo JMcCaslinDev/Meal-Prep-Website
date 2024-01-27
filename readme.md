@@ -37,7 +37,8 @@ This application is a comprehensive web-based tool designed for meal preparation
 [Guide on how to use the application, possibly with screenshots or GIFs demonstrating key features.]
 
 ## Planned Features and Next Steps
-1. **Meal Calendar Enhancement**: Implement the ability to select meals for different weeks or specific dates and automate the meal calendar based on calorie and macro requirements.
+1. **Meal Calendar Enhancement**: Implement the ability to select meals for different weeks or specific dates.
+    -   Add new api route for getting current recipes for user
 
 2. **Cook Meals Page Functionality**: Finalize the cook meals page to include dynamic updating of databases based on the recipes being cooked and eaten.
 

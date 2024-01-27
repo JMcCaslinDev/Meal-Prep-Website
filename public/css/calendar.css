@@ -90,18 +90,24 @@ body {
   font-size: 0.85rem; /* Adjusted font size for tags */
 }
 
+/* New wrapper style for save button */
+.save-button-container {
+  display: flex;
+  justify-content: center; /* Centers content horizontally */
+  align-items: center; /* Centers content vertically, if needed */
+  margin-top: 20px; /* Add margin at the top if you want some spacing */
+}
+
+/* Update to save-button just to ensure it doesn't have full width */
 .save-button {
-  display: block;
-  width: 200px; /* Fixed width for save button */
-  padding: 10px; /* Adjusted padding for button */
-  margin: 20px auto; /* Adjusted margin from grid */
+  padding: 10px 20px; /* Adjusted padding for button */
   font-size: 1rem;
   color: white;
   background-color: #28a745; /* Bootstrap success green for save button */
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Button shadow for depth */
+  transition: background-color 0.3s; /* Smooth transition for hover effect */
 }
 
 .save-button:hover {
