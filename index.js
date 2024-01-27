@@ -464,7 +464,7 @@ app.get('/api/user-recipes', async (req, res) => {
       const userId = await getUserIdFromSessionID(req.sessionID);
 
       // Fetch all recipes from the 'recipes' table that belong to the user
-      const sql = `SELECT recipeId, recipeName FROM recipes WHERE userId = ?`;
+      const sql = `SELECT id, recipeName FROM recipes WHERE userId = ?`;
       const userRecipes = await executeSQL(sql, [userId]);
 
       // Return the recipes as JSON

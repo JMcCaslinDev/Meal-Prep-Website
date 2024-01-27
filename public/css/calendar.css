@@ -57,16 +57,17 @@ body {
   margin-top: 10px; /* Space from header */
   margin-bottom: 10px; /* Space for dropdown */
   font-size: 0.8rem; /* Smaller text for button */
-  color: white;
-  background-color: lightgrey; /* Bootstrap primary blue */
-  border: none;
+  color: #495057; /* Bootstrap's default gray */
+  background-color: #e9ecef; /* Light gray background */
+  border: 1px solid #e9ecef; /* Bootstrap's default border color */
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s; /* Transition for interactive feedback */
+  transition: background-color 0.5s; /* Transition for interactive feedback */
 }
 
 .add-meal-button:hover {
-  background-color: gray; /* Darker blue on hover */
+  background-color: #adb5bd; /* Darker shade of gray on hover */
+  border: 1px solid #adb5bd; /* Bootstrap's default border color */
 }
 
 .meal-dropdown {
@@ -80,14 +81,45 @@ body {
 }
 
 .meal-tag {
-  display: block;
-  margin: 5px 0; /* Less vertical space between tags */
-  padding: 5px; /* Smaller padding for tags */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%; /* Make tags as wide as the container */
+  padding: 5px 10px; /* Padding inside tags */
+  margin-top: 5px; /* Spacing between tags */
   background-color: #e9ecef; /* Bootstrap-like gray for tags */
   border-radius: 4px;
-  cursor: pointer;
-  text-align: center; /* Center text in tags */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Shadow for depth */
   font-size: 0.85rem; /* Adjusted font size for tags */
+}
+
+.meal-recipe-select {
+  flex-grow: 1; /* Allow the dropdown to fill the space */
+  margin-right: 5px; /* Space between dropdown and time input */
+  border: 1px solid #ced4da; /* Bootstrap-like border color */
+  border-radius: 4px;
+  padding: .375rem .75rem; /* Bootstrap-like padding */
+}
+
+.meal-time-input {
+  border: 1px solid #ced4da; /* Bootstrap-like border color */
+  border-radius: 4px;
+  padding: .375rem .75rem; /* Bootstrap-like padding */
+  margin-right: 5px; /* Space between time input and remove button */
+}
+
+.meal-remove-btn {
+  border: none;
+  background-color: #e9ecef; /* Light grey background to blend in with the tag */
+  color: #495057; /* Dark grey text color */
+  border-radius: 4px;
+  padding: 0 5px; /* Smaller padding for the 'x' button */
+  cursor: pointer;
+  font-size: 0.85rem; /* Adjusted font size for consistency */
+}
+
+.meal-remove-btn:hover {
+  background-color: #ced4da; /* Slightly darker on hover for feedback */
 }
 
 /* New wrapper style for save button */
@@ -103,7 +135,7 @@ body {
   padding: 10px 20px; /* Adjusted padding for button */
   font-size: 1rem;
   color: white;
-  background-color: #28a745; /* Bootstrap success green for save button */
+  background-color: #6c757d; /* Bootstrap's default gray */
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -111,5 +143,7 @@ body {
 }
 
 .save-button:hover {
-  background-color: #218838; /* Slightly darker on hover for feedback */
+  background-color: #5a6268; /* Slightly darker on hover for feedback */
 }
+
+/* Additional styles can be added below as needed for customizing other elements */
