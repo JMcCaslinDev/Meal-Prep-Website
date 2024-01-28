@@ -28,11 +28,14 @@
         <div class="day-header">
           <%= day %>
         </div>
+
+        <!-- Add Meal button for each day -->
+        <button class="add-meal-button btn btn-primary btn-sm" data-day="<%= index %>">Add Meal</button>
+
         <div class="meal-slot-container" id="meal-slot-<%= index %>">
           <!-- Meal tags will be added here by calendar.js -->
         </div>
-        <!-- Add Meal button for each day -->
-        <button class="add-meal-button btn btn-primary btn-sm" data-day="<%= index %>">Add Meal</button>
+        
       </div>
     <% }) %>
   </div>

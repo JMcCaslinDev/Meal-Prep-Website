@@ -1,149 +1,160 @@
 body {
   margin-top: 62px;
-  background: #f8f9fa; /* Light gray background */
-  font-family: 'Arial', sans-serif; /* Standard font for clean look */
+  background: #f8f9fa;
+  font-family: 'Arial', sans-serif;
 }
 
 .week-selector {
   display: flex;
-  justify-content: center; /* Center week selector on the page */
-  margin-bottom: 20px;
+  justify-content: space-between;
+  margin: 0 20px;
   align-items: center;
 }
 
 #prev-week, #next-week {
-  margin: 0 15px; /* Spacing between navigation buttons */
+  margin: 0 15px;
 }
 
 #week-select {
-  padding: 5px 10px; /* More clickable area */
-  font-size: 1rem; /* Larger font for readability */
+  padding: 5px 10px;
+  font-size: 1rem;
 }
 
 .calendar-container {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 15px; /* Increased gap for better spacing */
-  padding: 20px;
-  max-width: 1200px; /* Max width to prevent too wide columns on large screens */
-  margin: auto; /* Center the grid in the middle of the page */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* This ensures that each column can grow independently */
+  margin: auto;
+  margin-top: 10px;
+  gap: 10px;
+  max-width: calc(100% - 40px);
+  padding: 0 20px;
 }
+
 
 .day-column {
   display: flex;
   flex-direction: column;
-  border: 1px solid #ddd; /* Lighter border color */
-  border-radius: 8px; /* Rounded corners */
-  padding: 20px; /* More internal spacing */
-  background-color: #ffffff; /* White background for columns */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
-  align-items: center; /* Center items in the day column */
+  min-width: 150px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 5px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  align-items: flex-start; /* Aligns items to the start, allowing different heights */
 }
+
 
 .day-header {
   text-align: center;
   font-weight: bold;
-  font-size: 1.2rem; /* Larger text for headers */
-  margin-bottom: 10px; /* Less space below headers to fit buttons */
-  color: #333; /* Darker color for better contrast */
-  background-color: #f2f2f2; /* Slight background for headers */
-  padding: 10px 0; /* Padding for aesthetic header */
-  border-radius: 4px; /* Rounded corners for header background */
-  width: 100%; /* Full width */
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  color: #333;
+  background-color: #f2f2f2;
+  padding: 10px 0;
+  border-radius: 4px;
+  width: 100%;
 }
 
 .add-meal-button {
-  padding: 5px 10px; /* Padding for buttons */
-  margin-top: 10px; /* Space from header */
-  margin-bottom: 10px; /* Space for dropdown */
-  font-size: 0.8rem; /* Smaller text for button */
-  color: #495057; /* Bootstrap's default gray */
-  background-color: #e9ecef; /* Light gray background */
-  border: 1px solid #e9ecef; /* Bootstrap's default border color */
+  padding: 5px 10px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  margin: auto;
+  font-size: 0.8rem;
+  color: #495057;
+  background-color: #e9ecef;
+  border: 1px solid #e9ecef;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.5s; /* Transition for interactive feedback */
+  transition: background-color 0.5s;
 }
 
 .add-meal-button:hover {
-  background-color: #adb5bd; /* Darker shade of gray on hover */
-  border: 1px solid #adb5bd; /* Bootstrap's default border color */
+  background-color: #adb5bd;
+  border: 1px solid #adb5bd;
 }
 
 .meal-dropdown {
-  display: none; /* Keep dropdown hidden until needed */
-  position: absolute; /* Position absolutely to float over other content */
-  background-color: #ffffff; /* White background for dropdown */
-  border: 1px solid #ddd; /* Border to match day columns */
-  border-radius: 4px; /* Rounded corners for dropdown */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Shadow for depth */
-  z-index: 10; /* Ensure dropdown appears above other elements */
+  display: none;
+  position: absolute;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 10;
 }
 
 .meal-tag {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%; /* Make tags as wide as the container */
-  padding: 5px 10px; /* Padding inside tags */
-  margin-top: 5px; /* Spacing between tags */
-  background-color: #e9ecef; /* Bootstrap-like gray for tags */
+  flex-direction: column; /* Stacks children vertically */
+  width: 100%;
+  min-height: 40px;
+  padding: 5px;
+  margin-top: 5px;
+  background-color: #e9ecef;
   border-radius: 4px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Shadow for depth */
-  font-size: 0.85rem; /* Adjusted font size for tags */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  font-size: 0.85rem;
+  align-self: start; /* Aligns the meal tag independently at the start of the container */
 }
 
+
 .meal-recipe-select {
-  flex-grow: 1; /* Allow the dropdown to fill the space */
-  margin-right: 5px; /* Space between dropdown and time input */
-  border: 1px solid #ced4da; /* Bootstrap-like border color */
+  width: 100%;
+  margin-bottom: 5px;
+  border: 1px solid #ced4da;
   border-radius: 4px;
-  padding: .375rem .75rem; /* Bootstrap-like padding */
+  padding: .375rem .75rem;
 }
 
 .meal-time-input {
-  border: 1px solid #ced4da; /* Bootstrap-like border color */
+  width: calc(100% - 15px);
+  border: 1px solid #ced4da;
   border-radius: 4px;
-  padding: .375rem .75rem; /* Bootstrap-like padding */
-  margin-right: 5px; /* Space between time input and remove button */
+  padding: .375rem .75rem;
+  display: inline-block;
 }
 
 .meal-remove-btn {
+  width: 15px;
+  height: 15px;
   border: none;
-  background-color: #e9ecef; /* Light grey background to blend in with the tag */
-  color: #495057; /* Dark grey text color */
+  background-color: #e9ecef;
+  color: #495057;
   border-radius: 4px;
-  padding: 0 5px; /* Smaller padding for the 'x' button */
+  padding: 0;
   cursor: pointer;
-  font-size: 0.85rem; /* Adjusted font size for consistency */
+  font-size: 0.85rem;
+  display: inline-block;
+  vertical-align: top;
 }
 
 .meal-remove-btn:hover {
-  background-color: #ced4da; /* Slightly darker on hover for feedback */
+  background-color: #ced4da;
 }
 
-/* New wrapper style for save button */
 .save-button-container {
   display: flex;
-  justify-content: center; /* Centers content horizontally */
-  align-items: center; /* Centers content vertically, if needed */
-  margin-top: 20px; /* Add margin at the top if you want some spacing */
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
 }
 
-/* Update to save-button just to ensure it doesn't have full width */
 .save-button {
-  padding: 10px 20px; /* Adjusted padding for button */
+  padding: 10px 20px;
   font-size: 1rem;
   color: white;
-  background-color: #6c757d; /* Bootstrap's default gray */
+  background-color: #6c757d;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s; /* Smooth transition for hover effect */
+  transition: background-color 0.3s;
 }
 
 .save-button:hover {
-  background-color: #5a6268; /* Slightly darker on hover for feedback */
+  background-color: #5a6268;
 }
 
 /* Additional styles can be added below as needed for customizing other elements */

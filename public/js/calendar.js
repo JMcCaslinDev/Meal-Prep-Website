@@ -12,21 +12,30 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Function to create a meal tag
-  function createMealTag(dayIndex) {
-    const mealTag = document.createElement('div');
-    mealTag.className = 'meal-tag';
-    mealTag.setAttribute('data-day-index', dayIndex);
+// Function to create a meal tag
+function createMealTag(dayIndex) {
+  const mealTag = document.createElement('div');
+  mealTag.className = 'meal-tag';
+  mealTag.setAttribute('data-day-index', dayIndex);
 
-    // Create a dropdown for selecting recipes
-    const recipeSelect = document.createElement('select');
-    recipeSelect.className = 'meal-recipe-select';
-    userRecipes.forEach(recipe => {
-      const option = document.createElement('option');
-      option.value = recipe.recipeId;
-      option.textContent = recipe.recipeName;
-      recipeSelect.appendChild(option);
-    });
+  // Create a dropdown for selecting recipes
+  const recipeSelect = document.createElement('select');
+  recipeSelect.className = 'meal-recipe-select';
+  
+  // Add a default "not selected" option
+  const defaultOption = document.createElement('option');
+  defaultOption.value = ''; // Set to an empty string which could represent null
+  defaultOption.textContent = 'Pick a meal'; // Text for the default option
+  defaultOption.selected = true; // Make this option selected by default
+  recipeSelect.appendChild(defaultOption);
+
+  // Add recipe options to the dropdown
+  userRecipes.forEach(recipe => {
+    const option = document.createElement('option');
+    option.value = recipe.recipeId;
+    option.textContent = recipe.recipeName;
+    recipeSelect.appendChild(option);
+  });
 
     // Create a time input
     const timeInput = document.createElement('input');
@@ -41,9 +50,14 @@ document.addEventListener('DOMContentLoaded', function() {
       mealTag.remove();
     };
 
+    // Adjust the DOM structure for the meal tag to meet the new layout requirements
+    const timeAndRemoveContainer = document.createElement('div');
+    timeAndRemoveContainer.className = 'time-remove-container';
+    timeAndRemoveContainer.appendChild(timeInput);
+    timeAndRemoveContainer.appendChild(removeBtn);
+
     mealTag.appendChild(recipeSelect);
-    mealTag.appendChild(timeInput);
-    mealTag.appendChild(removeBtn);
+    mealTag.appendChild(timeAndRemoveContainer); // Append the new container
 
     const mealSlotContainer = document.getElementById(`meal-slot-${dayIndex}`);
     
@@ -152,4 +166,3 @@ document.addEventListener('DOMContentLoaded', function() {
   // Call this function on page load to populate the recipe dropdowns
   fetchAndPopulateRecipes();
 });
-
