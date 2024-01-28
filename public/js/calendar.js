@@ -1,8 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
-  const weekSelector = document.getElementById('week-select');
+  const weekLabel = document.getElementById('week-label');
   const prevWeekButton = document.getElementById('prev-week');
   const nextWeekButton = document.getElementById('next-week');
   const saveButton = document.getElementById('save-button');
+  let currentWeekNumber = 0; // You might want to set this to the current week number
   let userRecipes = []; // This will hold the fetched recipes
 
   // Function to clear previous meal slots
@@ -12,30 +13,30 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-// Function to create a meal tag
-function createMealTag(dayIndex) {
-  const mealTag = document.createElement('div');
-  mealTag.className = 'meal-tag';
-  mealTag.setAttribute('data-day-index', dayIndex);
+  // Function to create a meal tag
+  function createMealTag(dayIndex) {
+    const mealTag = document.createElement('div');
+    mealTag.className = 'meal-tag';
+    mealTag.setAttribute('data-day-index', dayIndex);
 
-  // Create a dropdown for selecting recipes
-  const recipeSelect = document.createElement('select');
-  recipeSelect.className = 'meal-recipe-select';
-  
-  // Add a default "not selected" option
-  const defaultOption = document.createElement('option');
-  defaultOption.value = ''; // Set to an empty string which could represent null
-  defaultOption.textContent = 'Pick a meal'; // Text for the default option
-  defaultOption.selected = true; // Make this option selected by default
-  recipeSelect.appendChild(defaultOption);
+    // Create a dropdown for selecting recipes
+    const recipeSelect = document.createElement('select');
+    recipeSelect.className = 'meal-recipe-select';
+    
+    // Add a default "not selected" option
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Pick a meal';
+    defaultOption.selected = true;
+    recipeSelect.appendChild(defaultOption);
 
-  // Add recipe options to the dropdown
-  userRecipes.forEach(recipe => {
-    const option = document.createElement('option');
-    option.value = recipe.recipeId;
-    option.textContent = recipe.recipeName;
-    recipeSelect.appendChild(option);
-  });
+    // Add recipe options to the dropdown
+    userRecipes.forEach(recipe => {
+      const option = document.createElement('option');
+      option.value = recipe.recipeId;
+      option.textContent = recipe.recipeName;
+      recipeSelect.appendChild(option);
+    });
 
     // Create a time input
     const timeInput = document.createElement('input');
@@ -60,7 +61,6 @@ function createMealTag(dayIndex) {
     mealTag.appendChild(timeAndRemoveContainer); // Append the new container
 
     const mealSlotContainer = document.getElementById(`meal-slot-${dayIndex}`);
-    
     if (mealSlotContainer) {
       mealSlotContainer.appendChild(mealTag);
     } else {
@@ -82,7 +82,14 @@ function createMealTag(dayIndex) {
   // Fetch data from the backend to initialize the calendar
   async function fetchDataForWeek(weekNumber) {
     const response = await fetch(`/api/week-data?week=${weekNumber}`);
-    return await response.json();
+    const data = await response.json();
+    updateWeekLabel(data.startString, data.endString); // Update the week label
+    return data;
+  }
+
+  // Function to update the week label with the start and end dates
+  function updateWeekLabel(startDate, endDate) {
+    weekLabel.textContent = `${startDate}  -  ${endDate}`;
   }
 
   // Populate the calendar with the meal tags
@@ -111,6 +118,8 @@ function createMealTag(dayIndex) {
       });
     });
 
+
+
     const response = await fetch('/weekRecipes', {
       method: 'POST',
       headers: {
@@ -119,7 +128,7 @@ function createMealTag(dayIndex) {
       body: JSON.stringify({ meals })
     });
 
-    if(response.ok) {
+    if (response.ok) {
       console.log('Meals saved successfully');
     } else {
       console.error('Failed to save meals');
@@ -129,29 +138,23 @@ function createMealTag(dayIndex) {
   // Navigate to previous or next week
   function navigateWeeks(weekNumber) {
     fetchDataForWeek(weekNumber)
-      .then(mealData => populateCalendar(mealData))
+      .then(mealData => populateCalendar(mealData.meals))
       .catch(error => console.error('Failed to fetch week data', error));
   }
 
-  // Initial calendar setup
-  fetchDataForWeek(weekSelector.value)
-    .then(mealData => populateCalendar(mealData))
-    .catch(error => console.error('Failed to initialize calendar', error));
-
   // Add event listeners to week navigation buttons
   prevWeekButton.addEventListener('click', () => {
-    weekSelector.value = parseInt(weekSelector.value) - 1;
-    navigateWeeks(weekSelector.value);
+    currentWeekNumber -= 1;
+    navigateWeeks(currentWeekNumber);
   });
 
   nextWeekButton.addEventListener('click', () => {
-    weekSelector.value = parseInt(weekSelector.value) + 1;
-    navigateWeeks(weekSelector.value);
+    currentWeekNumber += 1;
+    navigateWeeks(currentWeekNumber);
   });
 
-  weekSelector.addEventListener('change', () => {
-    navigateWeeks(weekSelector.value);
-  });
+  // Initial calendar setup for the current week
+  navigateWeeks(currentWeekNumber); // This will fetch and display the current week
 
   // Event listener for the Add Meal buttons
   document.querySelectorAll('.add-meal-button').forEach(button => {
@@ -160,8 +163,6 @@ function createMealTag(dayIndex) {
       createMealTag(dayIndex);
     });
   });
-
-  saveButton.addEventListener('click', saveCalendar);
 
   // Call this function on page load to populate the recipe dropdowns
   fetchAndPopulateRecipes();

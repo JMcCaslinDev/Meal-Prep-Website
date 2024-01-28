@@ -13,11 +13,9 @@
 
   <div class="week-selector">
     <button id="prev-week">Previous Week</button>
-    <select id="week-select">
-      <% for (let i = 0; i <= 52; i++) { %>
-        <option value="<%= i %>">Week <%= i %></option>
-      <% } %>
-    </select>
+    
+    <div id="week-label">Week dates go here</div>
+
     <button id="next-week">Next Week</button>
   </div>
 
@@ -35,7 +33,7 @@
         <div class="meal-slot-container" id="meal-slot-<%= index %>">
           <!-- Meal tags will be added here by calendar.js -->
         </div>
-        
+
       </div>
     <% }) %>
   </div>

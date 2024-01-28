@@ -404,7 +404,7 @@ function getWeekBounds(date) {
 
 
 //  Displays the calendar page without querying user's current database selected meals
-app.get('/calendar', async (req, res) => {
+app.get('/calendar', isAuth, async (req, res) => {
   console.log("\nEntered calendar route \n");
 
   // Render the calendar template
@@ -440,6 +440,9 @@ app.get('/api/week-data', async (req, res) => {
     const startString = startDate.format('YYYY-MM-DD HH:mm:ss');
     const endString = endDate.format('YYYY-MM-DD HH:mm:ss');
 
+    const newStartDate = startDate.format('MM-DD-YYYY');
+    const newEndDate = endDate.format('MM-DD-YYYY');
+
     console.log("\nstartString: ", startString, "\n")
     console.log("\nendString: ", endString, "\n")
 
@@ -449,7 +452,7 @@ app.get('/api/week-data', async (req, res) => {
     console.log("\nMeals: ", meals, "\n")
           
     // Return the meal data as JSON
-    res.json({ meals: meals });
+    res.json({ meals: meals, startString: newStartDate, endString: newEndDate});
   } catch (error) {
     console.error("Error fetching week data:", error);
     res.status(500).send('Error fetching data for the week.');
