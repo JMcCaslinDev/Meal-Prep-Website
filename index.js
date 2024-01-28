@@ -482,72 +482,49 @@ app.get('/api/user-recipes', async (req, res) => {
 
 
 
-//  update weeks meal prep selections based on selected dropdowns in calendar page
 app.post('/weekRecipes', async (req, res) => {
   console.log("Inside /weekRecipes POST route");
 
+  // Get the user ID from the session
   let userId = await getUserIdFromSessionID(req.sessionID);
   console.log("User ID:", userId);
 
+  // Log the form data received from the request
   console.log('Form data:', req.body);
 
   if (userId) {
-    // Get the start and end of the current week in California time
-    const now = moment.tz('2023-08-07T05:15:00Z', 'America/Los_Angeles');
-    const { start: monday, end: sunday } = getWeekBounds(now);
+    try {
+      // Start transaction
+      await executeSQL('START TRANSACTION');
 
-    console.log("Now_local: ", now.format());
-    console.log("Monday_local: ", moment(monday).format());
-    console.log("Sunday_local: ", moment(sunday).format());
+      // Convert start and end dates to include time
+      const startDate = moment(req.body.startDate, 'MM-DD-YYYY').startOf('day').format('YYYY-MM-DD HH:mm:ss');
+      const endDate = moment(req.body.endDate, 'MM-DD-YYYY').endOf('day').format('YYYY-MM-DD HH:mm:ss');
 
-    // Convert to string for MySQL date object
-    let mondayString = moment.utc(monday).format('YYYY-MM-DD HH:mm:ss');
-    let sundayString = moment.utc(sunday).format('YYYY-MM-DD HH:mm:ss');
+      // Delete existing recipes in the meal calendar for the given week and user
+      let deleteSql = `DELETE FROM mealcalendar WHERE userId = ? AND timeSlot BETWEEN ? AND ?`;
+      await executeSQL(deleteSql, [userId, startDate, endDate]);
 
-    console.log("weeks_mondayString_utc_formatted: ", mondayString);
-    console.log("weeks_sundayString_utc_formatted: ", sundayString);
+      // Insert new meal calendar entries
+      let insertSql = `INSERT INTO mealcalendar (userId, recipeId, timeSlot) VALUES ?`;
+      let values = req.body.meals.map(meal => [userId, meal.recipeId, meal.timeSlot]);
+      await executeSQL(insertSql, [values]);
 
-    // Delete existing recipes in the meal calendar for the current week
-    let sql = `DELETE FROM mealcalendar WHERE userId = ? AND timeSlot BETWEEN ? AND ?`;
-    await executeSQL(sql, [userId, mondayString, sundayString]);
+      // Commit transaction
+      await executeSQL('COMMIT');
 
-    // Define the days and meals
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const meals = ['b', 'l', 'd'];
-
-    // Define meal times
-    const mealHours = { 'b': 7, 'l': 12, 'd': 19 }; // Local times for meals
-
-    // Insert new recipes for each day and meal time
-    for (let i = 0; i < meals.length; i++) {  // For each meal of the day
-      for (let j = 0; j < days.length; j++) {  // For each day of the week
-        let mealTime = moment.tz(monday, 'America/Los_Angeles').add(j, 'days').hour(mealHours[meals[i]]).minute(0).second(0); // Using local California time
-        let mealTimeUTC = mealTime.clone().utc(); // Convert to UTC
-        let recipeId = req.body[`${meals[i]}${days[j]}`];
-
-        console.log(`Meal time for meal ${i}, day ${j}: ${mealTime.format()}`);
-        console.log(`Meal time UTC for meal ${i}, day ${j}: ${mealTimeUTC.format()}`);
-        console.log(`RecipeId for meal ${i}, day ${j}: ${recipeId}`);
-
-        if (recipeId && recipeId !== '-1') {  // If a recipe is selected for this meal
-          sql = `INSERT INTO mealcalendar (userId, recipeId, timeSlot) VALUES (?, ?, ?)`;
-          try {
-            let result = await executeSQL(sql, [userId, recipeId, mealTimeUTC.format('YYYY-MM-DD HH:mm:ss')]);
-            console.log(`Insertion result for meal ${i}, day ${j}:`, result);
-          } catch (error) {
-            console.log("Error executing SQL: ", error);
-          }
-        }
-      }
+      res.json({ status: 'success', message: 'Meals updated successfully' });
+    } catch (error) {
+      // Rollback transaction in case of error
+      await executeSQL('ROLLBACK');
+      console.error('Error updating week meals:', error);
+      res.status(500).json({ status: 'error', message: 'Failed to update meals' });
     }
-
-    // Update the shopping list
-    console.log("Updating shopping list");
-    updateShoppingList(userId, mondayString, sundayString);
+  } else {
+    res.status(401).json({ status: 'error', message: 'Unauthorized user' });
   }
-
-  res.redirect('/calendar');
 });
+
 
 
 //  update shopping list database

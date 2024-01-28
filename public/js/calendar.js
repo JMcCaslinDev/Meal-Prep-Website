@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const nextWeekButton = document.getElementById('next-week');
   const saveButton = document.getElementById('save-button');
   let currentWeekNumber = 0; // You might want to set this to the current week number
+  let currentStartDate = ''; // To store the current start date of the week
+  let currentEndDate = ''; // To store the current end date of the week
   let userRecipes = []; // This will hold the fetched recipes
 
   // Function to clear previous meal slots
@@ -33,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add recipe options to the dropdown
     userRecipes.forEach(recipe => {
       const option = document.createElement('option');
-      option.value = recipe.recipeId;
+      option.value = recipe.id;
       option.textContent = recipe.recipeName;
       recipeSelect.appendChild(option);
     });
@@ -89,8 +91,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Function to update the week label with the start and end dates
   function updateWeekLabel(startDate, endDate) {
+    currentStartDate = startDate; // Update the current start date
+    currentEndDate = endDate; // Update the current end date
     weekLabel.textContent = `${startDate}  -  ${endDate}`;
   }
+
 
   // Populate the calendar with the meal tags
   function populateCalendar(mealData) {
@@ -105,35 +110,62 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Collect all meal data and send to the backend
-  async function saveCalendar() {
-    const meals = {};
-    document.querySelectorAll('.meal-slot-container').forEach((slot, index) => {
-      const day = days[index].toLowerCase();
-      meals[day] = [];
-      slot.querySelectorAll('.meal-tag').forEach(tag => {
-        const recipeId = tag.querySelector('.meal-recipe-select').value;
-        const time = tag.querySelector('.meal-time-input').value;
-        meals[day].push({ recipeId, time });
-      });
+
+
+
+
+// Function to send meal data to the server
+async function saveCalendar() {
+  const meals = [];
+  document.querySelectorAll('.day-column').forEach((column, index) => {
+    const day = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date(currentStartDate).getDay() + index % 7];
+    const date = new Date(currentStartDate);
+    date.setDate(date.getDate() + index); // Adjust date based on the day of the week
+    const dateString = date.toISOString().split('T')[0]; // Format date as string
+
+    column.querySelectorAll('.meal-tag').forEach(tag => {
+      const recipeSelect = tag.querySelector('.meal-recipe-select');
+      const timeInput = tag.querySelector('.meal-time-input');
+      if (recipeSelect.value) { // Only add meals with a selected recipe
+        meals.push({
+          recipeId: recipeSelect.value,
+          timeSlot: `${dateString} ${timeInput.value}:00` // Combine date and time
+        });
+      }
     });
+  });
 
-
-
+  // Send the meal data to the server
+  try {
     const response = await fetch('/weekRecipes', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ meals })
+      body: JSON.stringify({
+        weekNumber: currentWeekNumber,
+        startDate: currentStartDate,
+        endDate: currentEndDate,
+        meals: meals
+      })
     });
 
     if (response.ok) {
       console.log('Meals saved successfully');
+      // Additional success handling if needed
     } else {
-      console.error('Failed to save meals');
+      throw new Error('Failed to save meals');
     }
+  } catch (error) {
+    console.error('Error saving meals:', error);
+    // Additional error handling if needed
   }
+}
+
+// Add the save button event listener
+saveButton.addEventListener('click', saveCalendar);
+
+
 
   // Navigate to previous or next week
   function navigateWeeks(weekNumber) {
