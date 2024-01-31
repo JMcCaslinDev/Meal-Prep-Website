@@ -8,12 +8,14 @@ document.addEventListener('DOMContentLoaded', function() {
   let currentEndDate = ''; // To store the current end date of the week
   let userRecipes = []; // This will hold the fetched recipes
 
+
   // Function to clear previous meal slots
   function clearMealSlots() {
     document.querySelectorAll('.meal-slot-container').forEach(slot => {
       slot.innerHTML = '';
     });
   }
+
 
   // Function to create a meal tag
   function createMealTag(dayIndex) {
@@ -70,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+
   // Fetch recipes from the backend and populate the dropdowns
   async function fetchAndPopulateRecipes() {
     try {
@@ -81,13 +84,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+
   // Fetch data from the backend to initialize the calendar
   async function fetchDataForWeek(weekNumber) {
+    console.log("\ninside fetch data for week function\n");
     const response = await fetch(`/api/week-data?week=${weekNumber}`);
     const data = await response.json();
-    updateWeekLabel(data.startString, data.endString); // Update the week label
-    return data;
+    console.log("Data fetched: ", data); // To see the actual fetched data
+    if (data) {
+      currentStartDate = data.startString; // Update the current start date
+      currentEndDate = data.endString; // Update the current end date
+      console.log("\ndata.startString: ", data.startString, "\n");
+      console.log("\ndata.endString: ", data.endString, "\n");
+      updateWeekLabel(currentStartDate, currentEndDate); // Update the week label
+    }
+    return data; // Make sure to return the data
   }
+
+
+
 
   // Function to update the week label with the start and end dates
   function updateWeekLabel(startDate, endDate) {
@@ -97,21 +112,23 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
 
-  // Populate the calendar with the meal tags
+  // Populate the calendar with the meal tags from the database of users choosen meals
   function populateCalendar(mealData) {
+    console.log("\nEntered populateCalendar function\n")
+
     clearMealSlots(); // Clear only the meal slots
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
     days.forEach((day, index) => {
       const mealSlot = document.getElementById(`meal-slot-${index}`);
+      console.log(mealSlot);
       const meals = mealData[day.toLowerCase()] || [];
       meals.forEach(meal => {
         createMealTag(index); // Updated to create a tag for each meal
       });
     });
+
   }
-
-
-
 
 
 // Function to send meal data to the server
@@ -162,17 +179,23 @@ async function saveCalendar() {
   }
 }
 
-// Add the save button event listener
-saveButton.addEventListener('click', saveCalendar);
-
+  // Add the save button event listener
+  saveButton.addEventListener('click', saveCalendar);
 
 
   // Navigate to previous or next week
   function navigateWeeks(weekNumber) {
+    console.log("\nnavigateWeeks_weekNumber: ", weekNumber, "\n" )
     fetchDataForWeek(weekNumber)
-      .then(mealData => populateCalendar(mealData.meals))
+      .then(data => {
+        console.log("navigateweeks_data: ", data, "\n")
+        console.log("\nnavigateweeks_data.startString: ", data.startString, "\n")
+        assignDatesToDays(data.startString); // Assign the new dates to the day columns
+        populateCalendar(data.meals); // Populate the calendar with meals for these dates
+      })
       .catch(error => console.error('Failed to fetch week data', error));
   }
+
 
   // Add event listeners to week navigation buttons
   prevWeekButton.addEventListener('click', () => {
@@ -195,6 +218,37 @@ saveButton.addEventListener('click', saveCalendar);
       createMealTag(dayIndex);
     });
   });
+
+
+  // This function will update the day columns with the correct date for each day of the week
+  function assignDatesToDays(startDate) {
+    console.log("Inside assignDatesToDays function:");
+    const startOfTheWeek = new Date(startDate);
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  
+    days.forEach((day, index) => {
+      let currentDay = new Date(startOfTheWeek);
+      currentDay.setDate(currentDay.getDate() + index);
+      let currentDayString = currentDay.toISOString().split('T')[0];
+  
+      const dayColumnId = 'day-' + day.toLowerCase(); // Adjusted ID
+      console.log("Looking for dayColumn with ID:", dayColumnId);
+  
+      const dayColumn = document.getElementById(dayColumnId);
+      if (dayColumn) {
+        console.log("dayColumn found:", dayColumn);
+        dayColumn.setAttribute('data-date', currentDayString);
+        console.log(dayColumn.getAttribute('data-date')); // This will log the value of data-date
+      } else {
+        console.log("No element found for day:", day);
+      }
+    });
+  }
+  
+
+
+  
+
 
   // Call this function on page load to populate the recipe dropdowns
   fetchAndPopulateRecipes();

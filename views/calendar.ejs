@@ -22,18 +22,17 @@
   <div class="calendar-container">
     <% const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']; %>
     <% days.forEach((day, index) => { %>
-      <div class="day-column">
+      <div class="day-column" id="day-<%= day.toLowerCase() %>" data-date="">
         <div class="day-header">
           <%= day %>
         </div>
-
+    
         <!-- Add Meal button for each day -->
         <button class="add-meal-button btn btn-primary btn-sm" data-day="<%= index %>">Add Meal</button>
-
+    
         <div class="meal-slot-container" id="meal-slot-<%= index %>">
           <!-- Meal tags will be added here by calendar.js -->
         </div>
-
       </div>
     <% }) %>
   </div>
