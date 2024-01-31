@@ -223,27 +223,38 @@ async function saveCalendar() {
   // This function will update the day columns with the correct date for each day of the week
   function assignDatesToDays(startDate) {
     console.log("Inside assignDatesToDays function:");
-    const startOfTheWeek = new Date(startDate);
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  
+    
+    // Adjust startDate to be a Monday
+    const tempDate = new Date(startDate);
+    // If startDate is not a Monday, adjust it to the following Monday
+    const dayOfWeek = tempDate.getDay();
+    const distanceToMonday = (dayOfWeek === 0) ? 1 : (8 - dayOfWeek);
+    tempDate.setDate(tempDate.getDate() + distanceToMonday);
+    const startOfTheWeek = tempDate;
+
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
     days.forEach((day, index) => {
       let currentDay = new Date(startOfTheWeek);
       currentDay.setDate(currentDay.getDate() + index);
-      let currentDayString = currentDay.toISOString().split('T')[0];
-  
-      const dayColumnId = 'day-' + day.toLowerCase(); // Adjusted ID
+      let currentDayString = currentDay.getFullYear() + '-' +
+        ('0' + (currentDay.getMonth() + 1)).slice(-2) + '-' + 
+        ('0' + currentDay.getDate()).slice(-2);
+
+      const dayColumnId = 'day-' + day.toLowerCase();
       console.log("Looking for dayColumn with ID:", dayColumnId);
-  
+
       const dayColumn = document.getElementById(dayColumnId);
       if (dayColumn) {
         console.log("dayColumn found:", dayColumn);
         dayColumn.setAttribute('data-date', currentDayString);
-        console.log(dayColumn.getAttribute('data-date')); // This will log the value of data-date
+        console.log(currentDayString); // This will log the value of currentDayString
       } else {
         console.log("No element found for day:", day);
       }
     });
   }
+
   
 
 
