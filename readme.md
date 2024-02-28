@@ -22,7 +22,7 @@ This application is a comprehensive web-based tool designed for meal preparation
 
 ### Backend Components
 - Built on Node.js with Express as the web server.
-- MySQL for database management.
+- MySQL for database management (Moved local from aws due to rising costs).
 - Efficient handling of asynchronous database operations using async-mutex.
 
 ## Technical Aspects
@@ -45,6 +45,8 @@ This application is a comprehensive web-based tool designed for meal preparation
 3. **Shopping List and Fridge Improvements**: Ensure that the shopping list and fridge are fully dynamic, allowing for real-time updates and editing capabilities through modals or in-line editing.
 
 4. **User Interface Refinement**: Continue enhancing the aesthetic and functional aspects of the user interface, focusing on improving user experience across all pages. This involves streamlining navigation, ensuring responsive design for various devices, and integrating intuitive design elements that facilitate user interaction with the application's features.
+
+5. **SQL Database cloud based moved to local Need Testing** due to rising AWS hosting costs after 12 month trial plan we decided to take the sql database local to reduce development costs. AWS was originally implemented to gain experience in cloud hosting through Amazon Web Services. Need further testing to make sure transition happened smoothly and transfered over the correct information and tables.
 
 ## Contributing
 [Guidelines for contributing to the project, including code style, commit message format, etc.] Adding later
