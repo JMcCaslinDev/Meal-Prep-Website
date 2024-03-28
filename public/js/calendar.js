@@ -3,7 +3,9 @@ document.addEventListener('DOMContentLoaded', function() {
   const prevWeekButton = document.getElementById('prev-week');
   const nextWeekButton = document.getElementById('next-week');
   const saveButton = document.getElementById('save-button');
-  let currentWeekNumber = 0; // You might want to set this to the current week number
+
+  let currentWeekNumber = moment().isoWeek() - 1;
+  console.log("\nCurrentWeekNumber ", currentWeekNumber, "\n")
   let currentStartDate = ''; // To store the current start date of the week
   let currentEndDate = ''; // To store the current end date of the week
   let userRecipes = []; // This will hold the fetched recipes
