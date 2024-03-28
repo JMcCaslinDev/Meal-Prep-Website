@@ -8,6 +8,12 @@ document.addEventListener('DOMContentLoaded', function() {
   let currentEndDate = ''; // To store the current end date of the week
   let userRecipes = []; // This will hold the fetched recipes
 
+  if (fetchAndPopulateRecipes()){
+    console.log("\nTrying to set recipes for page load dropdown lists.\n")
+    userRecipes = fetchAndPopulateRecipes()
+  }
+    
+  
 
   // Function to clear previous meal slots
   function clearMealSlots() {
@@ -18,35 +24,53 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
   // Function to create a meal tag
-  function createMealTag(dayIndex) {
+  function createMealTag(dayIndex, meal) {
     const mealTag = document.createElement('div');
     mealTag.className = 'meal-tag';
     mealTag.setAttribute('data-day-index', dayIndex);
-
+  
     // Create a dropdown for selecting recipes
     const recipeSelect = document.createElement('select');
     recipeSelect.className = 'meal-recipe-select';
-    
+  
     // Add a default "not selected" option
     const defaultOption = document.createElement('option');
     defaultOption.value = '';
     defaultOption.textContent = 'Pick a meal';
     defaultOption.selected = true;
     recipeSelect.appendChild(defaultOption);
+  
+    console.log("Creating meal tag for day index:", dayIndex);
+    console.log("Meal object:", meal);
 
+    console.log("\nuserRecipes: ", userRecipes, "\n");
     // Add recipe options to the dropdown
     userRecipes.forEach(recipe => {
       const option = document.createElement('option');
       option.value = recipe.id;
       option.textContent = recipe.recipeName;
       recipeSelect.appendChild(option);
+      console.log("Added recipe option:", recipe.recipeName);
     });
+  
+    // Set the selected recipe in the dropdown based on the meal's recipeId (if available)
+    if (meal && meal.recipeId) {
+      recipeSelect.value = meal.recipeId;
+      console.log("Selected recipe ID:", meal.recipeId);
+    }
 
+  
     // Create a time input
     const timeInput = document.createElement('input');
     timeInput.type = 'time';
     timeInput.className = 'meal-time-input';
-
+  
+    // Set the time input value based on the meal's timeSlot
+    const timeSlot = new Date(meal.timeSlot);
+    const hours = timeSlot.getHours().toString().padStart(2, '0');
+    const minutes = timeSlot.getMinutes().toString().padStart(2, '0');
+    timeInput.value = `${hours}:${minutes}`;
+  
     // Create a remove button for the meal tag
     const removeBtn = document.createElement('button');
     removeBtn.textContent = 'x';
@@ -54,16 +78,16 @@ document.addEventListener('DOMContentLoaded', function() {
     removeBtn.onclick = function() {
       mealTag.remove();
     };
-
+  
     // Adjust the DOM structure for the meal tag to meet the new layout requirements
     const timeAndRemoveContainer = document.createElement('div');
     timeAndRemoveContainer.className = 'time-remove-container';
     timeAndRemoveContainer.appendChild(timeInput);
     timeAndRemoveContainer.appendChild(removeBtn);
-
+  
     mealTag.appendChild(recipeSelect);
     mealTag.appendChild(timeAndRemoveContainer); // Append the new container
-
+  
     const mealSlotContainer = document.getElementById(`meal-slot-${dayIndex}`);
     if (mealSlotContainer) {
       mealSlotContainer.appendChild(mealTag);
@@ -78,6 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
       const response = await fetch('/api/user-recipes');
       userRecipes = await response.json();
+      console.log("Fetched user recipes:", userRecipes); 
       // Call a function to populate the recipe selects if needed
     } catch (error) {
       console.error('Failed to fetch recipes', error);
@@ -114,20 +139,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Populate the calendar with the meal tags from the database of users choosen meals
   function populateCalendar(mealData) {
-    console.log("\nEntered populateCalendar function\n")
-
-    clearMealSlots(); // Clear only the meal slots
+    console.log("\nEntered populateCalendar function\n");
+  
+    clearMealSlots();
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
+  
+    const mealsByDay = {};
+    mealData.forEach(meal => {
+      const date = new Date(meal.timeSlot);
+      const dayIndex = date.getDay();
+      const adjustedDayIndex = (dayIndex + 6) % 7; // Adjust the day index to match your calendar order
+      const dayName = days[adjustedDayIndex].toLowerCase();
+      if (!mealsByDay[dayName]) {
+        mealsByDay[dayName] = [];
+      }
+      mealsByDay[dayName].push(meal);
+    });
+  
     days.forEach((day, index) => {
       const mealSlot = document.getElementById(`meal-slot-${index}`);
       console.log(mealSlot);
-      const meals = mealData[day.toLowerCase()] || [];
+      const meals = mealsByDay[day.toLowerCase()] || [];
       meals.forEach(meal => {
-        createMealTag(index); // Updated to create a tag for each meal
+        createMealTag(index, meal);
       });
     });
-
   }
 
 
@@ -211,13 +247,17 @@ async function saveCalendar() {
   // Initial calendar setup for the current week
   navigateWeeks(currentWeekNumber); // This will fetch and display the current week
 
-  // Event listener for the Add Meal buttons
-  document.querySelectorAll('.add-meal-button').forEach(button => {
-    button.addEventListener('click', function() {
-      const dayIndex = this.getAttribute('data-day');
-      createMealTag(dayIndex);
-    });
+ // Event listener for the Add Meal buttons
+document.querySelectorAll('.add-meal-button').forEach(button => {
+  button.addEventListener('click', function() {
+    const dayIndex = this.getAttribute('data-day');
+    const defaultMeal = {
+      recipeId: '',
+      timeSlot: ''
+    };
+    createMealTag(dayIndex, defaultMeal);
   });
+});
 
 
   // This function will update the day columns with the correct date for each day of the week

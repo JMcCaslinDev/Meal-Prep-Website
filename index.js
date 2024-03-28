@@ -403,6 +403,9 @@ function getWeekBounds(date) {
 
 
 
+
+
+
 //  Displays the calendar page without querying user's current database selected meals
 app.get('/calendar', isAuth, async (req, res) => {
   console.log("\nEntered calendar route \n");
@@ -411,6 +414,10 @@ app.get('/calendar', isAuth, async (req, res) => {
   // No data is passed to the template regarding meals, as it will be handled by client-side JS
   res.render('calendar');
 });
+
+
+
+
 
 
 //  Essentially the new version of the calendar get function
