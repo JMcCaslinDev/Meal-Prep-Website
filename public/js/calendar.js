@@ -1,4 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
+
+  var navbarHeight = document.querySelector('nav').offsetHeight;
+  var mainContent = document.getElementsByClassName('body');
+  document.body.style.paddingTop = navbarHeight + 'px';
+  
   const weekLabel = document.getElementById('week-label');
   const prevWeekButton = document.getElementById('prev-week');
   const nextWeekButton = document.getElementById('next-week');

@@ -5,6 +5,7 @@ body {
     background-attachment: fixed;
     color: black;
     font-family: sans-serif;
+    padding-top: 50px;
 }
 
 a {
@@ -18,25 +19,6 @@ a {
 img {
     width: 200px;
     height: 200px;
-}
-
-nav {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background-color: #B9BBC1;
-    width: 100%;
-    position: relative;
-}
-
-.nav {
-    float: left;
-    display: flex;
-    color: darkslategray;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
 }
 
 a:hover {

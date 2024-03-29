@@ -5,6 +5,7 @@ body {
   background-attachment: fixed;
   color: black;
   font-family: sans-serif;
+  padding-top: 50px;
 }
 
 a {

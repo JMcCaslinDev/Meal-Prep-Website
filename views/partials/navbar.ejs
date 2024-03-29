@@ -1,13 +1,14 @@
 <nav>
-  <a class="nav" href= "/logout">Log out</a>
-  <a class="nav" href= "/">Home</a>
+  <a class="nav" id="homeNavButton" href= "/">Home</a>
   <a class="nav" href= "/ingredients">Ingredients</a>
-  <a class="nav" href= "/recipes">Recipe Search</a>
-  <a class="nav" href= "/myRecipes">Custom Recipes</a>
-  <a class="nav" href= "/calendar">Plan Meals</a>
+  <a class="nav" href= "/myRecipes">Recipes</a>
+  <a class="nav" href= "/calendar">Meal Calendar</a>
   <a class="nav" href= "/shoppingList">Shopping List</a>
   <a class="nav" href= "/fridge">Virtual Fridge</a>
-  <a class="nav" href= "/bmi">BMI Calculator</a>
+
+  <a class="nav" id="logoutNavButton" href= "/logout">Log out</a>
+  <a class="nav" id="profileNavButton" href= "/bmi">Profile</a>
+
 </nav>
 
 <style>
@@ -25,9 +26,26 @@
 .nav {
     float: left;
     display: block;
-    color: darkslategray;
+    color: black;
     text-align: center;
-    padding: 14px 16px;
     text-decoration: none;
+    padding: 14px 20px;
+}
+
+#homeNavButton {
+color: rgb(91, 138, 167);
+font-weight: bold;
+}
+
+#profileNavButton {
+color: rgb(91, 138, 167);
+float: right;
+font-weight: bold;
+}
+
+#logoutNavButton {
+color: rgb(148, 22, 22);
+float: right;
+font-weight: bold;
 }
 </style>
