@@ -608,7 +608,7 @@ app.get("/shoppingList", async function(req, res) {
   console.log("User ID:", userId);
   if (userId) {
     // Define current week bounds
-    const now = moment.tz('2023-08-07T05:15:00Z', 'America/Los_Angeles');
+    const now = moment.tz();
     const { start: monday, end: sunday } = getWeekBounds(now);
     let mondayString = moment.utc(monday).format('YYYY-MM-DD HH:mm:ss');
     let sundayString = moment.utc(sunday).format('YYYY-MM-DD HH:mm:ss');

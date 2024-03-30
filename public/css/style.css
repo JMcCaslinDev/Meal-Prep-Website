@@ -1,9 +1,9 @@
 body {
   text-align: center;
-  background: linear-gradient(#c0cccb, #89918f);
+  background: #ffffff;
   background-repeat: no-repeat;
   background-attachment: fixed;
-  color: black;
+  color: #1D1C1D;
   font-family: sans-serif;
   padding-top: 50px;
 }
@@ -14,6 +14,7 @@ a {
 
 .btn {
   border-radius: 100px;
+  background-color: #56CCF2;
 }
 
 img {

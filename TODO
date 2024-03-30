@@ -1,0 +1,25 @@
+#   TODO
+
+1. Change project to use 1 master css file.
+
+2. Create test files for each files functionality.
+
+3. Setup automatic test runs before comits.
+
+4. Updated entire project documentation with inline code comments along with extensive documentation files made for what every function does along with a industry standard read me file.
+
+5. Fix Shopping List data its being passed.
+
+6. Add more features to fridge page and figure out shopping list to fridge relationship for data integrity and undoability.
+
+7. Make website more durable if any error pops up entire site crashes currently, handle error logging gracefully.
+
+8. Add a cooking page to be able to have fridge inventory update from this page when ingredients used.
+
+9. Change home page to something else decide what.
+
+10. Research what data needs encrypting before data base entry and update project to reflect this.
+
+11. Move functions out of the index.js file until its only the relevant index.js file stuff and everything else is modularized into their own respective files and imported correctly everywhere else.
+
+12. Research what else is needed to take a website live online and look into Vercel or another method of hosting website online.
