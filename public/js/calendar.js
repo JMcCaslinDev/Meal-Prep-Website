@@ -3,13 +3,13 @@ document.addEventListener('DOMContentLoaded', function() {
   var navbarHeight = document.querySelector('nav').offsetHeight;
   var mainContent = document.getElementsByClassName('body');
   document.body.style.paddingTop = navbarHeight + 'px';
-  
+
   const weekLabel = document.getElementById('week-label');
   const prevWeekButton = document.getElementById('prev-week');
   const nextWeekButton = document.getElementById('next-week');
   const saveButton = document.getElementById('save-button');
 
-  let currentWeekNumber = moment().isoWeek() - 1;
+  let currentWeekNumber = moment().isoWeek();
   console.log("\nCurrentWeekNumber ", currentWeekNumber, "\n")
   let currentStartDate = ''; // To store the current start date of the week
   let currentEndDate = ''; // To store the current end date of the week

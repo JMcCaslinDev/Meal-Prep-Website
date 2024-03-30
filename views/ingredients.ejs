@@ -23,7 +23,7 @@
   <div id="ingredientFrame">
     <div id="myIngredientsFrameTop">
       <a id="myIngredientsInnerFrameTopAddIngredientButton" class="nav" href="/addingredients">Add Ingredients</a>
-      <a id="myIngredientsInnerFrameTopManageIngredientsButton" class="nav" href="/findIngredients">Lookup Ingredients</a>
+      <!-- <a id="myIngredientsInnerFrameTopManageIngredientsButton" class="nav" href="/findIngredients">Lookup Ingredients</a> -->
     </div>
     <% for(let i = 0; i < userIngredients.length; i++) { %>
       <div class="ingredient-box" data-id="<%= userIngredients[i].id %>" data-name="<%= userIngredients[i].name %>" data-calories="<%= userIngredients[i].calories %>" data-protein="<%= userIngredients[i].protein %>" data-carbs="<%= userIngredients[i].carbs %>" data-fats="<%= userIngredients[i].fats %>" data-fiber="<%= userIngredients[i].fiber %>" data-sugar="<%= userIngredients[i].sugar %>" data-serving-size-description="<%= userIngredients[i].serving_size_description %>" data-serving-size-amount="<%= userIngredients[i].serving_size_amount %>" data-total-weight-in-grams="<%= userIngredients[i].total_weight_in_grams %>">

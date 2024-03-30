@@ -85,7 +85,7 @@ nav {
   color: #666;
   }
   #myIngredientsInnerFrameTopAddIngredientButton {
-  margin-right: 10px;
+  margin-right: 0px;
   }
   #myIngredientsInnerFrameTopAddIngredientButton, #myIngredientsInnerFrameTopManageIngredientsButton {
   margin-bottom: 20px;
