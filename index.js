@@ -534,111 +534,74 @@ app.post('/weekRecipes', async (req, res) => {
 
 
 
-//  update shopping list database
-async function updateShoppingList(userId, startDate, endDate) {
-  try {
-    console.log("Inside updateShoppingList function");
-    console.log("User ID:", userId);
+//  Update Shopping List Data API
+app.post("/api/updateShoppingList", async function(req, res) {
+  console.log("\nEntered api/updateShoppingList route\n")
+  let userId = await getUserIdFromSessionID(req.sessionID);
+  let startDate = moment(req.query.startDate, 'MM-DD-YYYY').format('YYYY-MM-DD');
+  let endDate = moment(req.query.endDate, 'MM-DD-YYYY').format('YYYY-MM-DD');
 
-    // Fetch meal calendar entries for the specified date range
-    let sql = `SELECT recipeId FROM mealcalendar WHERE userId = ? AND timeSlot BETWEEN ? AND ?`;
-    let calendarRows = await executeSQL(sql, [userId, startDate, endDate]);
+  if (userId) {
+    console.log("\nFound userId: ", userId, "\n");
+    try {
+      // Fetch meal calendar entries for the specified date range
+      let sql = `SELECT recipeId FROM meal_prep_website_database.mealcalendar WHERE userId = ? AND timeSlot BETWEEN ? AND ?`;
+      let calendarRows = await executeSQL(sql, [userId, startDate + " 00:00:00", endDate + " 23:59:59"]);
+      console.log("\nstartDate:", startDate, "\n");
+      console.log("\nendDate:", endDate, "\n");
+      console.log("\nCalendar Rows:", calendarRows, "\n");
 
-    // Clear the shopping list for the specified date range
-    console.log("Clearing shopping list for date range:", startDate, "to", endDate);
-    sql = `DELETE FROM shoppinglist WHERE userId = ? AND DATE(weekDate) = DATE(?)`;
-    await executeSQL(sql, [userId, startDate]);
-
-
-
-    // If there are no recipes for this date range, return
-    if (calendarRows.length === 0) {
-      console.log("No calendar rows found, shopping list cleared");
-      return;
-    }
-
-    // Count the occurrences of each recipe
-    let recipeCounts = {};
-    for (let row of calendarRows) {
-      recipeCounts[row.recipeId] = (recipeCounts[row.recipeId] || 0) + 1;
-    }
-
-    let combinedIngredients = {};
-    for (let recipeId in recipeCounts) {
-      sql = `SELECT parsedIngredients FROM recipes WHERE userId = ? AND recipeId = ?`;
-      let recipeRows = await executeSQL(sql, [userId, recipeId]);
-      let ingredients = JSON.parse(recipeRows[0].parsedIngredients);
-
-      for (let ingredient of ingredients) {
-        let name = ingredient.ingredient;
-        let quantity = ingredient.quantity * recipeCounts[recipeId];
-        let measurement = ingredient.measurement || null; // Use null if measurement is not specified
-
-        // Combine the same ingredients
-        if (name in combinedIngredients) {
-          combinedIngredients[name].quantity += quantity;
-        } else {
-          combinedIngredients[name] = {
-            quantity: quantity,
-            measurement: measurement
-          };
-        }
+      // If there are no recipes for this date range, return success response
+      if (calendarRows.length === 0) {
+        console.log("No Calendar Rows Found");
+        res.sendStatus(200);
+        return;
       }
-    }
 
-    // Log the combined ingredients
-    console.log(`Combined ingredients for user ${userId}:`, combinedIngredients);
+      // Fetch the ingredient details for the recipes in the meal calendar
+      let recipeIds = calendarRows.map(row => row.recipeId);
+      sql = `
+        SELECT i.name, i.serving_size_description AS measurement, SUM(ri.quantity) AS total_quantity
+        FROM meal_prep_website_database.recipes_ingredients ri
+        JOIN meal_prep_website_database.ingredients i ON ri.ingredient_id = i.id
+        WHERE ri.recipe_id IN (?)
+        GROUP BY i.name, i.serving_size_description
+      `;
+      let ingredientRows = await executeSQL(sql, [recipeIds]);
+      console.log("\ningredientRows: ", ingredientRows, "\n")
 
-    // Insert the aggregated ingredients into the shopping list
-    for (let name in combinedIngredients) {
-      let { quantity, measurement } = combinedIngredients[name];
-      sql = `INSERT INTO shoppinglist (userId, ingredientName, quantity, measurement, weekDate) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE quantity = VALUES(quantity)`;
-      let params = [userId, name, quantity, measurement, startDate]; // Using startDate as the date for the shopping list
-      await executeSQL(sql, params);
+      // Clear the shopping list for the specified date range before inserting new entries
+      sql = `DELETE FROM meal_prep_website_database.shoppinglist WHERE userId = ? AND weekDate BETWEEN ? AND ?`;
+      await executeSQL(sql, [userId, startDate, endDate]);
+
+      // Insert the aggregated ingredients into the shopping list
+      let insertSql = `
+      INSERT INTO meal_prep_website_database.shoppinglist (userId, ingredientName, quantity, measurement, weekDate)
+      VALUES ?
+      `;
+      let insertValues = ingredientRows.map(row => [userId, row.name, row.total_quantity, row.measurement, startDate]);
+      await executeSQL(insertSql, [insertValues]);
+
+      res.sendStatus(200);
+    } catch (error) {
+      console.error("Error updating shopping list:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
-  } catch (error) {
-    console.log(`Error updating shopping list for user ${userId}:`, error);
+  } else {
+    res.status(401).json({ error: "Unauthorized" });
   }
-}
+});
+
+
+
 
 
 //  display shopping list page info
 app.get("/shoppingList", async function(req, res) {
   let userId = await getUserIdFromSessionID(req.sessionID);
-  console.log("User ID:", userId);
-  if (userId) {
-    // Define current week bounds
-    const now = moment.tz();
-    const { start: monday, end: sunday } = getWeekBounds(now);
-    let mondayString = moment.utc(monday).format('YYYY-MM-DD HH:mm:ss');
-    let sundayString = moment.utc(sunday).format('YYYY-MM-DD HH:mm:ss');
 
-    // Fetch shopping list from shoppinglist for the current week
-    let sql = `SELECT shoppingListId, ingredientName as name, quantity, checked
-               FROM shoppinglist 
-               WHERE userId = ? AND DATE(weekDate) BETWEEN DATE(?) AND DATE(?)
-              `;
-    executeSQL(sql, [userId, mondayString, sundayString])
-      .then(function(rows) {
-        if (rows.length === 0) {
-          res.render("shoppingList", { data: {} });
-        } else {
-          // Combine ingredients for rendering
-          let combinedIngredients = {};
-          for (let row of rows) {
-            let name = row.name;
-            let quantity = row.quantity;
-            let shoppingListId = row.shoppingListId;
-            let checked = row.checked == 1; // Convert checked status to boolean
-            combinedIngredients[name] = { quantity, shoppingListId, checked }; // Include checked status in the object
-          }
-          res.render("shoppingList", { data: combinedIngredients });
-        }
-      })
-      .catch(function(error) {
-        console.log("Error fetching shopping list: " + error);
-        res.send("An error occurred");
-      });
+  if (userId) {
+    res.render("shoppingList");
   } else {
     res.redirect("/login");
   }

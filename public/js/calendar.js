@@ -213,6 +213,8 @@ async function saveCalendar() {
     if (response.ok) {
       console.log('Meals saved successfully');
       // Additional success handling if needed
+      // Call the function to update the shopping list
+      updateShoppingList(currentStartDate, currentEndDate);
     } else {
       throw new Error('Failed to save meals');
     }
@@ -224,6 +226,8 @@ async function saveCalendar() {
 
   // Add the save button event listener
   saveButton.addEventListener('click', saveCalendar);
+
+  
 
 
   // Navigate to previous or next week
@@ -302,6 +306,36 @@ document.querySelectorAll('.add-meal-button').forEach(button => {
     });
   }
 
+
+  // Function to update the shopping list
+  async function updateShoppingList(startDate, endDate) {
+    try {
+      const response = await fetch(`/api/updateShoppingList?startDate=${startDate}&endDate=${endDate}`, {
+        method: 'POST',
+      });
+      if (response.ok) {
+        console.log('Shopping list updated successfully');
+      } else {
+        console.error('Error updating shopping list:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error updating shopping list:', error);
+    }
+  }
+
+
+  // function renderShoppingList(shoppingListItems) {
+  //   const shoppingListContainer = document.getElementById('shoppingList');
+  //   // Clear the existing shopping list
+  //   shoppingListContainer.innerHTML = '';
+  
+  //   // Render the updated shopping list items
+  //   shoppingListItems.forEach(item => {
+  //     const listItem = document.createElement('li');
+  //     listItem.textContent = `${item.ingredientName} - ${item.quantity} ${item.unit}`;
+  //     shoppingListContainer.appendChild(listItem);
+  //   });
+  // }
   
 
 
