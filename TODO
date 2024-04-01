@@ -23,3 +23,7 @@
 11. Move functions out of the index.js file until its only the relevant index.js file stuff and everything else is modularized into their own respective files and imported correctly everywhere else.
 
 12. Research what else is needed to take a website live online and look into Vercel or another method of hosting website online.
+
+13. Update SQL to not use index as primary key change to id or something else and make sure the database links and everything are correct.
+
+14. Make formatting and naming conventions consistent in code files use web dev standard whichever camelcase or snake case

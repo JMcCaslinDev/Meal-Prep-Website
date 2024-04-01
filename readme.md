@@ -10,7 +10,7 @@ This application is a comprehensive web-based tool designed for meal preparation
 - **User Authentication**: Secure login and signup functionalities.
 - **Dynamic Meal Calendar**: Plan and view meals by the week for any week of 2024.
 - **Cook Meals Page**: View and update fridge inventory and daily macros and calories. (Not created yet)
-- **Fridge Management**: Virtual representation of user's fridge with detailed item information.
+- **Fridge Management**: Virtual representation of user's fridge with detailed item information populated from shopping list.
 - **Shopping List**: Dynamic list based on meal calendar for efficient shopping planning.
 - **Ingredient Management**: Add and track ingredients with nutritional information and price.
 - **Recipe Creation**: Users can create, save, and manage recipes.

@@ -270,7 +270,7 @@ app.post('/signup', async (req, res) => {
 app.get('/getRecipe/:recipeId', async (req, res) => {
   const recipeId = req.params.recipeId;
 
-  let sql = `SELECT * FROM recipes WHERE recipeId = ?`;
+  let sql = `SELECT * FROM recipes WHERE id = ?`;
   let recipeData = await executeSQL(sql, [recipeId]);
 
   res.json(recipeData);
@@ -365,7 +365,7 @@ app.get('/recipeResults', async (req, res) => {
 });
 
 
-//TODO Fix me not working / add recipe to my recieps from search
+// TODO Fix me not working / add recipe to my recipies from search
 //  favorite recipes from recipe search and add it to users database of recipes as a favorited recipe maybe need new table
 app.post('/fav', async (req, res) => {
  
@@ -379,27 +379,28 @@ app.post('/fav', async (req, res) => {
   console.log(userId);
 });
 
+//  Remove this if not needed at all may be all version before switched to moment conversion instead
 
-//  get the weeks bound for certain dates e.g. based on a date, which week is it 0 - 52?
-function getWeekBounds(date) {
-  console.log("\nEntered getWeekBounds\n");
+// //  get the weeks bound for certain dates e.g. based on a date, which week is it 0 - 52?
+// function getWeekBounds(date) {
+//   console.log("\nEntered getWeekBounds\n");
 
-  //change to be dynamic for time zones once working 
-  const now = moment(date).tz("America/Los_Angeles");
-  console.log("now_getWeekBounds_la: ", now);
+//   //change to be dynamic for time zones once working 
+//   const now = moment(date).tz("America/Los_Angeles");
+//   console.log("now_getWeekBounds_la: ", now);
 
-  let day = now.day();
-  console.log("day_getWeekBounds_la: ", day);
+//   let day = now.day();
+//   console.log("day_getWeekBounds_la: ", day);
 
-  let diffToMonday = day === 0 ? 6 : day === 1 ? 0 : day - 1;
-  let monday = now.clone().subtract(diffToMonday, 'days').startOf('day');
-  console.log("monday_getWeekBounds+la: ", monday);
+//   let diffToMonday = day === 0 ? 6 : day === 1 ? 0 : day - 1;
+//   let monday = now.clone().subtract(diffToMonday, 'days').startOf('day');
+//   console.log("monday_getWeekBounds+la: ", monday);
 
-  let sunday = monday.clone().add(6, 'days').endOf('day');
-  console.log("sunday_getWeekBounds_la: ", sunday);
+//   let sunday = monday.clone().add(6, 'days').endOf('day');
+//   console.log("sunday_getWeekBounds_la: ", sunday);
 
-  return { start: monday.utc().toDate(), end: sunday.utc().toDate() };
-}
+//   return { start: monday.utc().toDate(), end: sunday.utc().toDate() };
+// }
 
 
 
@@ -430,7 +431,7 @@ app.get('/api/week-data', async (req, res) => {
   console.log("\nweekNumber: ", weekNumber, "\n")
 
   // Check if the weekNumber is a valid number
-  if (isNaN(weekNumber) || weekNumber < 0 || weekNumber > 52) {
+  if (isNaN(weekNumber) || weekNumber < 1 || weekNumber > 53) {
     return res.status(400).send('Invalid week number');
   }
 
@@ -440,8 +441,16 @@ app.get('/api/week-data', async (req, res) => {
 
     // Calculate the date range for the requested week number
     const year = new Date().getFullYear(); // Use the current year or a different logic if required
-    const startDate = moment().year(year).week(weekNumber).startOf('isoWeek');
-    const endDate = moment(startDate).endOf('isoWeek');
+    let startDate = moment().year(year).week(weekNumber).startOf('isoWeek');
+    let endDate = moment(startDate).endOf('isoWeek');
+
+    // Handle the case when the current date is Sunday
+    const currentDay = moment().day();
+    if (currentDay === 0) {
+      // If it's Sunday, treat it as the start of the new week
+      startDate = moment().year(year).week(weekNumber).startOf('isoWeek');
+      endDate = moment(startDate).add(6, 'days').endOf('day');
+    }
 
     // Convert to string for MySQL
     const startString = startDate.format('YYYY-MM-DD HH:mm:ss');
@@ -467,6 +476,9 @@ app.get('/api/week-data', async (req, res) => {
 });
 
 
+
+
+
 // API route to get all recipes for the current user
 app.get('/api/user-recipes', async (req, res) => {
   try {
@@ -484,9 +496,6 @@ app.get('/api/user-recipes', async (req, res) => {
       res.status(500).send('Error fetching user recipes.');
   }
 });
-
-
-
 
 
 app.post('/weekRecipes', async (req, res) => {
@@ -534,13 +543,17 @@ app.post('/weekRecipes', async (req, res) => {
 
 
 
-//  Update Shopping List Data API
+
+
+
+
+// Update Shopping List Data API
 app.post("/api/updateShoppingList", async function(req, res) {
-  console.log("\nEntered api/updateShoppingList route\n")
+  console.log("\nEntered api/updateShoppingList route\n");
   let userId = await getUserIdFromSessionID(req.sessionID);
   let startDate = moment(req.query.startDate, 'MM-DD-YYYY').format('YYYY-MM-DD');
   let endDate = moment(req.query.endDate, 'MM-DD-YYYY').format('YYYY-MM-DD');
-
+  
   if (userId) {
     console.log("\nFound userId: ", userId, "\n");
     try {
@@ -560,15 +573,23 @@ app.post("/api/updateShoppingList", async function(req, res) {
 
       // Fetch the ingredient details for the recipes in the meal calendar
       let recipeIds = calendarRows.map(row => row.recipeId);
+
       sql = `
-        SELECT i.name, i.serving_size_description AS measurement, SUM(ri.quantity) AS total_quantity
-        FROM meal_prep_website_database.recipes_ingredients ri
+        SELECT i.id AS ingredientId, i.name AS ingredientName, SUM(ri.quantity * mc.count) AS quantity, ri.unit
+        FROM (
+          SELECT recipeId, COUNT(*) AS count
+          FROM meal_prep_website_database.mealcalendar
+          WHERE userId = ? AND timeSlot BETWEEN ? AND ?
+          GROUP BY recipeId
+        ) mc
+        JOIN meal_prep_website_database.recipes_ingredients ri ON mc.recipeId = ri.recipe_id
         JOIN meal_prep_website_database.ingredients i ON ri.ingredient_id = i.id
-        WHERE ri.recipe_id IN (?)
-        GROUP BY i.name, i.serving_size_description
+        WHERE mc.recipeId IN (?)
+        GROUP BY i.id, i.name, ri.unit
       `;
-      let ingredientRows = await executeSQL(sql, [recipeIds]);
-      console.log("\ningredientRows: ", ingredientRows, "\n")
+      let ingredientRows = await executeSQL(sql, [userId, startDate + " 00:00:00", endDate + " 23:59:59", recipeIds]);
+      
+      console.log("\ningredientRows: ", ingredientRows, "\n");
 
       // Clear the shopping list for the specified date range before inserting new entries
       sql = `DELETE FROM meal_prep_website_database.shoppinglist WHERE userId = ? AND weekDate BETWEEN ? AND ?`;
@@ -576,10 +597,10 @@ app.post("/api/updateShoppingList", async function(req, res) {
 
       // Insert the aggregated ingredients into the shopping list
       let insertSql = `
-      INSERT INTO meal_prep_website_database.shoppinglist (userId, ingredientName, quantity, measurement, weekDate)
-      VALUES ?
+        INSERT INTO meal_prep_website_database.shoppinglist (userId, ingredientId, recipeId, quantity, unit, checked, weekDate)
+        VALUES ?
       `;
-      let insertValues = ingredientRows.map(row => [userId, row.name, row.total_quantity, row.measurement, startDate]);
+      let insertValues = ingredientRows.map(row => [userId, row.ingredientId, null, row.quantity, row.unit, 0, startDate]);
       await executeSQL(insertSql, [insertValues]);
 
       res.sendStatus(200);
@@ -606,6 +627,9 @@ app.get("/shoppingList", async function(req, res) {
     res.redirect("/login");
   }
 });
+
+
+
 
 
 //  check off shopping list items functionality
