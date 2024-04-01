@@ -686,15 +686,20 @@ app.post("/checkOffItem", isAuth, async function(req, res) {
     console.log("Executing SQL:", sql, [checkedValue, shoppingListId, userId]);
     await executeSQL(sql, [checkedValue, shoppingListId, userId]);
 
-    // Retrieve the ingredient details from the shopping list
-    sql = `SELECT ingredientName, quantity, measurement FROM shoppinglist WHERE shoppingListId = ?`;
+    // Retrieve the ingredient details from the shopping list by joining with the ingredients table
+    sql = `
+      SELECT i.name AS ingredientName, sl.quantity, sl.unit
+      FROM shoppinglist sl
+      JOIN ingredients i ON sl.ingredientId = i.id
+      WHERE sl.shoppingListId = ?
+    `;
     console.log("Executing SQL:", sql, [shoppingListId]);
     let result = await executeSQL(sql, [shoppingListId]);
 
     if (result.length > 0) {
       let ingredientName = result[0].ingredientName;
       let quantity = result[0].quantity;
-      let unit = result[0].measurement;
+      let unit = result[0].unit;
 
       console.log("Ingredient Name:", ingredientName);
       console.log("Quantity:", quantity);
@@ -711,7 +716,6 @@ app.post("/checkOffItem", isAuth, async function(req, res) {
         console.log("Executing SQL:", sql, [userId, ingredientName, shoppingListId]);
         await executeSQL(sql, [userId, ingredientName, shoppingListId]);
       }
-
 
       res.status(200).json({ success: "Item updated successfully" });
     } else {

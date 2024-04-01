@@ -8,22 +8,20 @@
 
 4. Updated entire project documentation with inline code comments along with extensive documentation files made for what every function does along with a industry standard read me file.
 
-5. Fix Shopping List data its being passed.
+5. Add more features to fridge page and figure out shopping list to fridge relationship for data integrity and undoability.
 
-6. Add more features to fridge page and figure out shopping list to fridge relationship for data integrity and undoability.
+6. Make website more durable if any error pops up entire site crashes currently, handle error logging gracefully.
 
-7. Make website more durable if any error pops up entire site crashes currently, handle error logging gracefully.
+7. Add a cooking page to be able to have fridge inventory update from this page when ingredients used.
 
-8. Add a cooking page to be able to have fridge inventory update from this page when ingredients used.
+8. Change home page to something else decide what.
 
-9. Change home page to something else decide what.
+9. Research what data needs encrypting before data base entry and update project to reflect this.
 
-10. Research what data needs encrypting before data base entry and update project to reflect this.
+10. Move functions out of the index.js file until its only the relevant index.js file stuff and everything else is modularized into their own respective files and imported correctly everywhere else.
 
-11. Move functions out of the index.js file until its only the relevant index.js file stuff and everything else is modularized into their own respective files and imported correctly everywhere else.
+11. Research what else is needed to take a website live online and look into Vercel or another method of hosting website online.
 
-12. Research what else is needed to take a website live online and look into Vercel or another method of hosting website online.
+12. Update SQL to not use index as primary key change to id or something else and make sure the database links and everything are correct.
 
-13. Update SQL to not use index as primary key change to id or something else and make sure the database links and everything are correct.
-
-14. Make formatting and naming conventions consistent in code files use web dev standard whichever camelcase or snake case
+13. Make formatting and naming conventions consistent in code files use web dev standard whichever camelcase or snake case
