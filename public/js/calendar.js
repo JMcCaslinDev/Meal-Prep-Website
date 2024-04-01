@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', function() {
   const nextWeekButton = document.getElementById('next-week');
   const saveButton = document.getElementById('save-button');
 
+  // let specificDate = moment("2024-03-24");
+  // let currentWeekNumber = specificDate.isoWeek();
+
   let currentWeekNumber = moment().isoWeek();
   console.log("\nCurrentWeekNumber ", currentWeekNumber, "\n")
   let currentStartDate = ''; // To store the current start date of the week

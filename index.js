@@ -267,7 +267,7 @@ app.post('/signup', async (req, res) => {
 
 
 //  
-app.get('/getRecipe/:recipeId', async (req, res) => {
+app.get('/getRecipe/:recipeId', isAuth, async (req, res) => {
   const recipeId = req.params.recipeId;
 
   let sql = `SELECT * FROM recipes WHERE id = ?`;
@@ -352,7 +352,7 @@ app.post('/recipe', async (req, res) => {
 
 
 //url is fixed and is working
-app.get('/recipeResults', async (req, res) => {
+app.get('/recipeResults', isAuth, async (req, res) => {
 
   let keyword = req.query.recipeSearch;
 
@@ -422,7 +422,7 @@ app.get('/calendar', isAuth, async (req, res) => {
 
 
 //  Essentially the new version of the calendar get function
-app.get('/api/week-data', async (req, res) => {
+app.get('/api/week-data', isAuth, async (req, res) => {
   console.log("\nEntered api/week-data route\n")
 
   // Extract the week number from the query parameters
@@ -480,7 +480,7 @@ app.get('/api/week-data', async (req, res) => {
 
 
 // API route to get all recipes for the current user
-app.get('/api/user-recipes', async (req, res) => {
+app.get('/api/user-recipes', isAuth, async (req, res) => {
   try {
       // Use the session ID to get the user ID
       const userId = await getUserIdFromSessionID(req.sessionID);
@@ -498,7 +498,7 @@ app.get('/api/user-recipes', async (req, res) => {
 });
 
 
-app.post('/weekRecipes', async (req, res) => {
+app.post('/weekRecipes', isAuth, async (req, res) => {
   console.log("Inside /weekRecipes POST route");
 
   // Get the user ID from the session
@@ -548,7 +548,7 @@ app.post('/weekRecipes', async (req, res) => {
 
 
 // Update Shopping List Data API
-app.post("/api/updateShoppingList", async function(req, res) {
+app.post("/api/updateShoppingList", isAuth, async function(req, res) {
   console.log("\nEntered api/updateShoppingList route\n");
   let userId = await getUserIdFromSessionID(req.sessionID);
   let startDate = moment(req.query.startDate, 'MM-DD-YYYY').format('YYYY-MM-DD');
@@ -614,11 +614,44 @@ app.post("/api/updateShoppingList", async function(req, res) {
 });
 
 
+// Retrieve shopping list info to populate shopping list with
+app.get('/api/shoppingList', isAuth, async function(req, res) {
+  let userId = await getUserIdFromSessionID(req.sessionID);
+  let startDate = moment(req.query.startDate, 'MM-DD-YYYY').format('YYYY-MM-DD');
+  let endDate = moment(req.query.endDate, 'MM-DD-YYYY').format('YYYY-MM-DD');
+
+  console.log("User ID:", userId);
+  console.log("Start Date:", startDate);
+  console.log("End Date:", endDate);
+
+  if (userId) {
+    try {
+      let sql = `
+        SELECT sl.shoppingListId AS id, sl.userId, sl.ingredientId, sl.recipeId, sl.quantity, sl.unit, sl.checked, sl.weekDate, i.name AS ingredientName
+        FROM shoppinglist sl
+        JOIN ingredients i ON sl.ingredientId = i.id
+        WHERE sl.userId = ? AND sl.weekDate BETWEEN ? AND ?
+      `;
+      console.log("SQL Query:", sql);
+      console.log("Query Parameters:", [userId, startDate, endDate]);
+
+      let shoppingListItems = await executeSQL(sql, [userId, startDate, endDate]);
+      console.log("Shopping List Items:", shoppingListItems);
+
+      res.json(shoppingListItems);
+    } catch (error) {
+      console.error("Error fetching shopping list:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  } else {
+    res.status(401).json({ error: "Unauthorized" });
+  }
+});
 
 
 
 //  display shopping list page info
-app.get("/shoppingList", async function(req, res) {
+app.get("/shoppingList", isAuth, async function(req, res) {
   let userId = await getUserIdFromSessionID(req.sessionID);
 
   if (userId) {
@@ -633,7 +666,7 @@ app.get("/shoppingList", async function(req, res) {
 
 
 //  check off shopping list items functionality
-app.post("/checkOffItem", async function(req, res) {
+app.post("/checkOffItem", isAuth, async function(req, res) {
   let userId = await getUserIdFromSessionID(req.sessionID);
   console.log("User ID:", userId);
   let shoppingListId = req.body.shoppingListId;
@@ -691,7 +724,7 @@ app.post("/checkOffItem", async function(req, res) {
 
 
 //  display fridge page on frontend
-app.get("/fridge", async function(req, res) {
+app.get("/fridge", isAuth, async function(req, res) {
   let userId = await getUserIdFromSessionID(req.sessionID);
   console.log("User ID:", userId);
   if (userId) {
@@ -711,7 +744,7 @@ app.get("/fridge", async function(req, res) {
 
 
 //  update fridge items based on database queries
-app.post("/updateFridgeItem", async function(req, res) {
+app.post("/updateFridgeItem", isAuth, async function(req, res) {
   try {
     let userId = await getUserIdFromSessionID(req.sessionID);
 
@@ -811,7 +844,7 @@ app.get('/createRecipes', isAuth, async (req, res) => {
 
 
 //  route for displaying the page info for bmi
-app.get('/bmi', async (req, res) => {
+app.get('/bmi', isAuth, async (req, res) => {
   //pass in user account may not be working user to user :(
   console.log("/bmi route");
 
@@ -843,7 +876,7 @@ app.get('/bmi', async (req, res) => {
 
 
 //  update bmi information for user
-app.post('/bmi', async (req, res) => {
+app.post('/bmi', isAuth, async (req, res) => {
 
   let sessionID = req.sessionID; //sets sessionID variable as current session id 
   console.log("sessionID:", sessionID);
@@ -1013,7 +1046,7 @@ app.delete('/deleteRecipe', async (req, res) => {
 
 
 
-app.get('/myRecipes', async (req, res) => {
+app.get('/myRecipes', isAuth, async (req, res) => {
   let sessionID = req.sessionID;
 
   // First, get the userId from the accounts table using the sessionID
