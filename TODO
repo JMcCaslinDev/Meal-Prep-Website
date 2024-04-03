@@ -25,3 +25,11 @@
 12. Update SQL to not use index as primary key change to id or something else and make sure the database links and everything are correct.
 
 13. Make formatting and naming conventions consistent in code files use web dev standard whichever camelcase or snake case
+
+
+#   Fridge
+- Add fridge item functionality
+- Delete item from fridge with little x next to item
+- Add the date next to items in fridge
+- Add expiration date for items
+- 

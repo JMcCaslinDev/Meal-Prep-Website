@@ -1,0 +1,139 @@
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  
+  .navbar {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    padding-bottom: 1.5rem;
+  }
+  
+  .navbar ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  
+  .navbar li {
+    margin-right: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .navbar a {
+    color: #000;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+  }
+  
+  .navbar a:hover {
+    background-color: #e9ecef;
+  }
+  
+  .main-content {
+    flex: 1;
+    padding: 1rem;
+  }
+  
+  .week-selector {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  
+  #week-label {
+    font-size: 1.2rem;
+    font-weight: bold;
+    flex: 1;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  
+  .shopping-list-container {
+    max-width: 50%;
+    margin: 0 auto;
+  }
+  
+  .shopping-list-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+  }
+  
+  .shopping-list-item .form-check {
+    margin-right: 1rem;
+  }
+  
+  .shopping-list-item .quantity-container {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+  }
+  
+  .shopping-list-item .quantity-input,
+  .shopping-list-item .unit-input {
+    width: 80px;
+    margin-left: 0.5rem;
+  }
+  
+  .shopping-list-item .quantity-input::placeholder,
+  .shopping-list-item .unit-input::placeholder {
+    color: #888;
+  }
+  
+  .shopping-list-item .needed-quantity {
+    margin-left: 1rem;
+    font-size: 0.9rem;
+    color: #888;
+  }
+  
+  @media (max-width: 600px) {
+    .week-selector {
+      flex-direction: column;
+    }
+  
+    .week-selector button {
+      margin-bottom: 0.5rem;
+    }
+  
+    .shopping-list-item {
+      flex-wrap: wrap;
+    }
+  
+    .shopping-list-item .form-check {
+      width: 100%;
+      margin-right: 0;
+      margin-bottom: 0.5rem;
+    }
+  
+    .shopping-list-item .quantity-container {
+      margin-left: 0;
+      width: 100%;
+      justify-content: space-between;
+    }
+  
+    .shopping-list-item .quantity-input,
+    .shopping-list-item .unit-input {
+      margin-left: 0;
+      margin-right: 0.5rem;
+    }
+  
+    .shopping-list-item .needed-quantity {
+      margin-left: 0;
+      margin-top: 0.5rem;
+      width: 100%;
+      text-align: right;
+    }
+  }

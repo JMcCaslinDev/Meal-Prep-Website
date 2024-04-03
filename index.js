@@ -547,7 +547,7 @@ app.post('/weekRecipes', isAuth, async (req, res) => {
 
 
 
-// Update Shopping List Data API
+// Update Shopping List Data API Called From Calendar Page
 app.post("/api/updateShoppingList", isAuth, async function(req, res) {
   console.log("\nEntered api/updateShoppingList route\n");
   let userId = await getUserIdFromSessionID(req.sessionID);
@@ -597,7 +597,7 @@ app.post("/api/updateShoppingList", isAuth, async function(req, res) {
 
       // Insert the aggregated ingredients into the shopping list
       let insertSql = `
-        INSERT INTO meal_prep_website_database.shoppinglist (userId, ingredientId, recipeId, quantity, unit, checked, weekDate)
+        INSERT INTO meal_prep_website_database.shoppinglist (userId, ingredientId, recipeId, neededQuantity, unit, checked, weekDate)
         VALUES ?
       `;
       let insertValues = ingredientRows.map(row => [userId, row.ingredientId, null, row.quantity, row.unit, 0, startDate]);
@@ -627,7 +627,7 @@ app.get('/api/shoppingList', isAuth, async function(req, res) {
   if (userId) {
     try {
       let sql = `
-        SELECT sl.shoppingListId AS id, sl.userId, sl.ingredientId, sl.recipeId, sl.quantity, sl.unit, sl.checked, sl.weekDate, i.name AS ingredientName
+        SELECT sl.shoppingListId AS id, sl.userId, sl.ingredientId, sl.recipeId, sl.quantity, sl.neededQuantity, sl.unit, sl.checked, sl.weekDate, i.name AS ingredientName
         FROM shoppinglist sl
         JOIN ingredients i ON sl.ingredientId = i.id
         WHERE sl.userId = ? AND sl.weekDate BETWEEN ? AND ?
@@ -726,6 +726,54 @@ app.post("/checkOffItem", isAuth, async function(req, res) {
   }
 });
 
+
+app.post('/updateItemQuantity', isAuth, async function (req, res) {
+  const { shoppingListId, quantity } = req.body;
+  const userId = await getUserIdFromSessionID(req.sessionID);
+
+  if (userId) {
+    try {
+      const sql = `
+        UPDATE shoppinglist 
+        SET quantity = ?
+        WHERE shoppingListId = ? AND userId = ?
+      `;
+      await executeSQL(sql, [quantity, shoppingListId, userId]);
+
+      res.sendStatus(200);
+    } catch (error) {
+      console.error('Error updating item quantity:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  } else {
+    res.status(401).json({ error: 'Unauthorized' });
+  }
+});
+
+
+
+app.post('/updateItemUnit', isAuth, async function (req, res) {
+  const { shoppingListId, unit } = req.body;
+  const userId = await getUserIdFromSessionID(req.sessionID);
+
+  if (userId) {
+    try {
+      const sql = `
+        UPDATE shoppinglist 
+        SET unit = ?
+        WHERE shoppingListId = ? AND userId = ?
+      `;
+      await executeSQL(sql, [unit, shoppingListId, userId]);
+
+      res.sendStatus(200);
+    } catch (error) {
+      console.error('Error updating item unit:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  } else {
+    res.status(401).json({ error: 'Unauthorized' });
+  }
+});
 
 //  display fridge page on frontend
 app.get("/fridge", isAuth, async function(req, res) {
