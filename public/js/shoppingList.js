@@ -7,7 +7,25 @@ $(document).ready(function () {
     let currentStartDate = '';
     let currentEndDate = '';
   
-
+    // Inside the $(document).ready function
+    $('#done-shopping').on('click', function() {
+        const startDate = currentStartDate;
+        const endDate = currentEndDate;
+    
+        $.ajax({
+        type: 'POST',
+        url: '/updateFridgeFromShoppingList',
+        data: JSON.stringify({ startDate, endDate }),
+        contentType: 'application/json',
+        success: function(response) {
+            console.log('Fridge items updated:', response);
+            // Optional: Refresh the shopping list or perform any other necessary actions
+        },
+        error: function(xhr, status, error) {
+            console.error('Error updating fridge items:', error);
+        }
+        });
+    });
 
     // Function to render the shopping list
     function renderShoppingList(shoppingListItems) {
@@ -90,7 +108,7 @@ $(document).ready(function () {
         });
     }
   
-    
+
     // Function to update the unit of a shopping list item
     function updateItemUnit(shoppingListId, newUnit) {
         $.ajax({

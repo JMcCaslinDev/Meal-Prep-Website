@@ -677,53 +677,16 @@ app.post("/checkOffItem", isAuth, async function(req, res) {
   console.log("Shopping List ID:", shoppingListId);
   console.log("Checked Value:", checkedValue);
 
-  if (userId) {
-    let sql = `
-      UPDATE shoppinglist 
-      SET checked = ? 
-      WHERE shoppingListId = ? AND userId = ?
-    `;
-    console.log("Executing SQL:", sql, [checkedValue, shoppingListId, userId]);
-    await executeSQL(sql, [checkedValue, shoppingListId, userId]);
 
-    // Retrieve the ingredient details from the shopping list by joining with the ingredients table
-    sql = `
-      SELECT i.name AS ingredientName, sl.quantity, sl.unit
-      FROM shoppinglist sl
-      JOIN ingredients i ON sl.ingredientId = i.id
-      WHERE sl.shoppingListId = ?
-    `;
-    console.log("Executing SQL:", sql, [shoppingListId]);
-    let result = await executeSQL(sql, [shoppingListId]);
+  let sql = `
+    UPDATE shoppinglist 
+    SET checked = ? 
+    WHERE shoppingListId = ? AND userId = ?
+  `;
+  console.log("Executing SQL:", sql, [checkedValue, shoppingListId, userId]);
+  await executeSQL(sql, [checkedValue, shoppingListId, userId]);
 
-    if (result.length > 0) {
-      let ingredientName = result[0].ingredientName;
-      let quantity = result[0].quantity;
-      let unit = result[0].unit;
 
-      console.log("Ingredient Name:", ingredientName);
-      console.log("Quantity:", quantity);
-      console.log("Unit:", unit);
-
-      if (checkedValue === 1) {
-        // Code to add the ingredient to the fridge
-        sql = `INSERT INTO fridge (userId, ingredientName, quantity, unit, shoppingListId, created_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`;
-        console.log("Executing SQL:", sql, [userId, ingredientName, quantity, unit, shoppingListId]);
-        await executeSQL(sql, [userId, ingredientName, quantity, unit, shoppingListId]);
-      } else {
-        // Code to remove the ingredient from the fridge
-        sql = `DELETE FROM fridge WHERE userId = ? AND ingredientName = ? AND shoppingListId = ?`;
-        console.log("Executing SQL:", sql, [userId, ingredientName, shoppingListId]);
-        await executeSQL(sql, [userId, ingredientName, shoppingListId]);
-      }
-
-      res.status(200).json({ success: "Item updated successfully" });
-    } else {
-      res.status(404).json({ error: "Ingredient not found" });
-    }
-  } else {
-    res.status(401).redirect("/login");
-  }
 });
 
 
@@ -775,102 +738,162 @@ app.post('/updateItemUnit', isAuth, async function (req, res) {
   }
 });
 
-//  display fridge page on frontend
+//  renders fridge page
 app.get("/fridge", isAuth, async function(req, res) {
   let userId = await getUserIdFromSessionID(req.sessionID);
   console.log("User ID:", userId);
   if (userId) {
-    let sql = `
-      SELECT ingredientName, unit, SUM(quantity) as quantity 
-      FROM fridge 
-      WHERE userId = ? AND quantity > 0
-      GROUP BY ingredientName, unit
-    `;
-    console.log("Executing SQL:", sql, [userId]);
-    let result = await executeSQL(sql, [userId]);
-    res.render("fridge", { fridgeContents: result });
+    res.render("fridge");
   } else {
     res.status(401).redirect("/login");
   }
 });
 
-
-//  update fridge items based on database queries
-app.post("/updateFridgeItem", isAuth, async function(req, res) {
-  try {
-    let userId = await getUserIdFromSessionID(req.sessionID);
-
-    if (!userId) {
-      console.error("User ID not found");
-      return res.status(400).json({ error: "User ID not found" });
-    }
-
-    console.log("User ID:", userId);
-
-
-    const nullIfEmpty = (value) => (value === "" || value === undefined) ? null : value;
-
-    let { ingredientName, unit, quantity } = req.body;
-
-    ingredientName = nullIfEmpty(ingredientName);
-    unit = nullIfEmpty(unit);
-    quantity = nullIfEmpty(quantity);
-    // Maybe handle quantity differently if you expect it to be a number
+app.get("/api/fridge-items", isAuth, async function(req, res) {
+  let userId = await getUserIdFromSessionID(req.sessionID);
+  console.log("User ID:", userId);
+  if (userId) {
+    let sql = `
+      SELECT * 
+      FROM fridge 
+      WHERE userId = ?
+    `;
+    console.log("Executing SQL:", sql, [userId]);
+    let result = await executeSQL(sql, [userId]);
+    res.json(result);
+  } else {
+    res.status(401).json({ error: "Unauthorized" });
+  }
+});
 
 
 
-    if (!ingredientName || quantity == null) {
-      console.error("ingredientName:", ingredientName, "quantity:", quantity);
-      return res.status(400).json({ error: "Missing or invalid parameters" });
-    }
-
-
-    // Fetch the current total quantity of this ingredient for this user
-    let result = await executeSQL(`
-      SELECT SUM(quantity) AS totalQuantity
+app.get("/api/fridge-item/:id", isAuth, async function(req, res) {
+  let userId = await getUserIdFromSessionID(req.sessionID);
+  let fridgeId = req.params.id;
+  console.log("User ID:", userId);
+  console.log("Fridge ID:", fridgeId);
+  
+  if (userId) {
+    let sql = `
+      SELECT * 
       FROM fridge
-      WHERE userId = ? AND ingredientName = ? AND quantity > 0
-    `, [userId, ingredientName]);
-
-    const existingTotalQuantity = result[0].totalQuantity || 0;
-    const difference = quantity - existingTotalQuantity;
-
-    console.log(`Updating ${ingredientName}: existing quantity ${existingTotalQuantity}, new quantity ${quantity}, difference ${difference}`);
-
-    if (difference < 0) {
-      // Reduce quantity from the oldest entries
-      let rowsToUpdate = await executeSQL(`
-        SELECT id, quantity
-        FROM fridge
-        WHERE userId = ? AND ingredientName = ? AND quantity > 0
-        ORDER BY created_at ASC
-      `, [userId, ingredientName]);
-
-      let amountToReduce = -difference;
-      for (const row of rowsToUpdate) {
-        if (amountToReduce <= 0) break;
-
-        const reduceBy = Math.min(amountToReduce, row.quantity);
-        await executeSQL(`
-          UPDATE fridge
-          SET quantity = quantity - ?
-          WHERE id = ?
-        `, [reduceBy, row.id]);
-
-        amountToReduce -= reduceBy;
-      }
-    } else if (difference > 0) {
-      // Add a new entry
-      await executeSQL(`
-        INSERT INTO fridge (userId, ingredientName, quantity, unit, created_at)
-        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-      `, [userId, ingredientName, difference, unit]);
+      WHERE userId = ? AND fridgeId = ?
+    `;
+    console.log("Executing SQL:", sql, [userId, fridgeId]);
+    let result = await executeSQL(sql, [userId, fridgeId]);
+    
+    if (result.length > 0) {
+      res.json(result[0]);
+    } else {
+      res.status(404).json({ error: "Fridge item not found" });
     }
+  } else {
+    res.status(401).json({ error: "Unauthorized" });
+  }
+});
 
-    res.status(200).json({ success: "Item updated successfully" });
-  } catch (err) {
-    console.error("Error in updateFridgeItem:", err);
-    res.status(500).json({ error: "An unexpected error occurred" });
+
+app.patch("/api/fridge-item/:id", isAuth, async function(req, res) {
+  try {
+      const userId = await getUserIdFromSessionID(req.sessionID);
+      const fridgeId = req.params.id;
+
+      console.log("PATCH request received for fridgeId:", fridgeId);
+      console.log("Request body:", req.body);
+
+      // Get the current fridge item data
+      let sql = `SELECT * FROM fridge WHERE userId = ? AND fridgeId = ?`;
+      let result = await executeSQL(sql, [userId, fridgeId]);
+
+      if (result.length === 0) {
+          return res.status(404).json({ error: "Fridge item not found" });
+      }
+
+      const fridgeItem = result[0];
+
+      // Update only the fields that are present in the request body
+      const updatedItem = {
+          ...fridgeItem,
+          ...req.body,
+          isOpened: req.body.isOpened !== undefined ? req.body.isOpened : fridgeItem.isOpened,
+          isLeftover: req.body.isLeftover !== undefined ? req.body.isLeftover : fridgeItem.isLeftover
+      };
+
+      // Prepare the SQL query and values
+      const fields = Object.keys(updatedItem);
+      const placeholders = fields.map(() => '?').join(', ');
+      const values = fields.map(field => updatedItem[field]);
+
+      sql = `UPDATE fridge SET ${fields.map(field => `${field} = ?`).join(', ')} WHERE userId = ? AND fridgeId = ?`;
+      values.push(userId, fridgeId);
+
+      console.log("Executing SQL:", sql, values);
+
+      result = await executeSQL(sql, values);
+
+      console.log("Update result:", result);
+
+      if (result.affectedRows > 0) {
+          res.json({ success: true });
+      } else {
+          res.status(404).json({ error: "Fridge item not found or not updated" });
+      }
+  } catch (error) {
+      console.error('PATCH /api/fridge-item/:id Error:', error);
+      res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+
+// Sends data to fridge database from shoppinglist page
+app.post('/updateFridgeFromShoppingList', isAuth, async function(req, res) {
+  let userId = await getUserIdFromSessionID(req.sessionID);
+  console.log("User ID:", userId);
+  let { startDate, endDate } = req.body;
+
+  // Convert the dates to the format expected by the database
+  startDate = moment(startDate, 'MM-DD-YYYY').format('YYYY-MM-DD');
+  endDate = moment(endDate, 'MM-DD-YYYY').format('YYYY-MM-DD');
+
+  if (userId) {
+    try {
+      // Delete existing fridge items associated with the current shopping list
+      let deleteSql = `
+        DELETE FROM fridge 
+        WHERE userId = ? AND shoppingListId IN (
+          SELECT shoppingListId 
+          FROM shoppinglist 
+          WHERE userId = ? AND weekDate BETWEEN ? AND ?
+        )
+      `;
+      await executeSQL(deleteSql, [userId, userId, startDate, endDate]);
+
+      // Fetch the checked items from the shopping list table
+      let sql = `
+        SELECT sl.shoppingListId, sl.quantity, sl.unit, i.name AS ingredientName
+        FROM shoppinglist sl
+        JOIN ingredients i ON sl.ingredientId = i.id
+        WHERE sl.userId = ? AND sl.checked = 1 AND sl.weekDate BETWEEN ? AND ?
+      `;
+      let checkedItems = await executeSQL(sql, [userId, startDate, endDate]);
+
+      for (let item of checkedItems) {
+        let { shoppingListId, quantity, unit, ingredientName } = item;
+
+        // Add the ingredient to the fridge
+        sql = `INSERT INTO fridge (userId, ingredientName, quantity, unit, shoppingListId, created_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`;
+        await executeSQL(sql, [userId, ingredientName, quantity, unit, shoppingListId]);
+      }
+
+      res.status(200).json({ success: "Fridge items updated successfully" });
+    } catch (error) {
+      console.error("Error updating fridge items:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  } else {
+    res.status(401).json({ error: "Unauthorized" });
   }
 });
 

@@ -1,84 +1,62 @@
 <!DOCTYPE html>
 <html>
-  
+
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
-    <link href="/css/style.css" rel="stylesheet">
-    <title>My Fridge</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  
-    <style>
-        .table th, .table td {
-            width: 50px; /* Adjust width */
-            height: 20px; /* Adjust height */
-            text-align: center; /* Center text */
-            padding: 10px; /* Adjust padding */
-        }
-        .quantity-input {
-            width: 40px; /* You can adjust this value to set a specific width for the quantity input */
-        }
-        .table-responsive {
-            display: flex;
-            justify-content: center;
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/css/main.css" rel="stylesheet">
+  <title>My Fridge</title>
 </head>
-  
+
 <body>
-    <%- include("partials/navbar.ejs") %>
-    <div class="container mt-4 text-center">
-        <h1>My Fridge</h1>
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Ingredient</th>
-                        <th>Quantity</th>
-                        <th>Unit</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% fridgeContents.forEach(item => { %>
-                        <% if (item.quantity > 0) { %>
-                            <tr>
-                                <td><%= item.ingredientName %></td>
-                                <td><input type="number" class="quantity-input" value="<%= item.quantity %>" data-id="<%= item.id %>"></td>
-                                <td><%= item.unit %></td>
-                            </tr>
-                        <% } %>
-                    <% }) %>
-                </tbody>
-            </table>
+  <%- include("partials/navbar.ejs") %>
+  <div class="container mt-4">
+    <h1>My Fridge</h1>
+    <div id="fridge-items-container"></div>
+  </div>
+
+  <!-- Fridge Modal -->
+  <div id="item-modal" class="modal fridge-modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Edit Fridge Item</h2>
+      <form id="edit-item-form">
+        <input type="hidden" id="fridge-id">
+        <div class="mb-3">
+          <label for="item-name" class="form-label">Item Name</label>
+          <input type="text" class="form-control" id="item-name" required>
         </div>
+        <div class="mb-3">
+          <label for="item-quantity" class="form-label">Quantity</label>
+          <input type="number" class="form-control" id="item-quantity" required>
+        </div>
+        <div class="mb-3">
+          <label for="item-unit" class="form-label">Unit</label>
+          <input type="text" class="form-control" id="item-unit" required>
+        </div>
+        <div class="mb-3">
+          <label for="item-expiry" class="form-label">Expiry Date</label>
+          <input type="date" class="form-control" id="item-expiry">
+        </div>
+        <div class="mb-3">
+          <label for="shopping-list-id" class="form-label">Shopping List ID</label>
+          <input type="number" class="form-control" id="shopping-list-id">
+        </div>
+        <div class="mb-3 form-check">
+          <input type="checkbox" class="form-check-input" id="is-opened">
+          <label class="form-check-label" for="is-opened">Is Opened</label>
+        </div>
+        <div class="mb-3 form-check">
+          <input type="checkbox" class="form-check-input" id="is-leftover">
+          <label class="form-check-label" for="is-leftover">Is Leftover</label>
+        </div>
+        <button type="button" class="btn btn-danger" id="delete-item-btn">Delete Item</button>
+      </form>
     </div>
+  </div>
 
-    <script>
-        $('.quantity-input').change(function() {
-            let ingredientName = $(this).closest('tr').find('td:first').text(); // Get ingredient name from the table
-            let newQuantity = $(this).val();
-            let unit = $(this).closest('tr').find('td:nth-child(3)').text(); // Get unit from the table
-
-            if (newQuantity == 0) {
-                $(this).closest('tr').hide(); // Hide the row if quantity is 0
-            }
-
-            $.ajax({
-                type: 'POST',
-                url: '/updateFridgeItem',
-                data: { ingredientName: ingredientName, quantity: newQuantity, unit: unit }, // Sending ingredientName and unit
-                success: function(response) {
-                    if (newQuantity > 0) {
-                        alert('Quantity updated successfully');
-                    }
-                },
-                error: function(response) {
-                    alert('An error occurred while updating the quantity');
-                }
-            });
-        });
-    </script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="/js/fridge.js"></script>
 </body>
-                      
 </html>
