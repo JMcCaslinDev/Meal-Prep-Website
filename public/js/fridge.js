@@ -51,7 +51,6 @@ $(document).ready(function () {
         });
     }
 
-    
     // Function to open the edit modal and populate form fields
     function openEditModal(fridgeId) {
         $.ajax({
@@ -77,7 +76,7 @@ $(document).ready(function () {
                 });
 
                 $('#is-opened, #is-leftover').change(function() {
-                    const fieldToUpdate = $(this).attr('id').replace('is-', '');
+                    const fieldToUpdate = $(this).attr('id');
                     const value = $(this).is(':checked');
                     updateField(fieldToUpdate, value, fridgeId);
                 });

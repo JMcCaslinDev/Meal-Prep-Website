@@ -802,37 +802,28 @@ app.patch("/api/fridge-item/:id", isAuth, async function(req, res) {
       console.log("PATCH request received for fridgeId:", fridgeId);
       console.log("Request body:", req.body);
 
-      // Get the current fridge item data
-      let sql = `SELECT * FROM fridge WHERE userId = ? AND fridgeId = ?`;
-      let result = await executeSQL(sql, [userId, fridgeId]);
-
-      if (result.length === 0) {
-          return res.status(404).json({ error: "Fridge item not found" });
+      // Translate the request body to the correct column names
+      // and ensure that boolean values are converted to 1 or 0 for the database.
+      const updates = {};
+      for (const key in req.body) {
+          if (key === 'is-opened') {
+              updates['isOpened'] = req.body[key] ? 1 : 0;
+          } else if (key === 'is-leftover') {
+              updates['isLeftover'] = req.body[key] ? 1 : 0;
+          } else {
+              updates[key] = req.body[key];
+          }
       }
 
-      const fridgeItem = result[0];
+      // Construct the SQL update statement dynamically based on the fields to be updated.
+      const updateClauses = Object.keys(updates).map(field => `${field} = ?`);
+      const sqlValues = [...Object.values(updates), userId, fridgeId];
 
-      // Update only the fields that are present in the request body
-      const updatedItem = {
-          ...fridgeItem,
-          ...req.body,
-          isOpened: req.body.isOpened !== undefined ? req.body.isOpened : fridgeItem.isOpened,
-          isLeftover: req.body.isLeftover !== undefined ? req.body.isLeftover : fridgeItem.isLeftover
-      };
+      let sql = `UPDATE fridge SET ${updateClauses.join(', ')} WHERE userId = ? AND fridgeId = ?`;
 
-      // Prepare the SQL query and values
-      const fields = Object.keys(updatedItem);
-      const placeholders = fields.map(() => '?').join(', ');
-      const values = fields.map(field => updatedItem[field]);
+      console.log("Executing SQL:", sql, sqlValues);
 
-      sql = `UPDATE fridge SET ${fields.map(field => `${field} = ?`).join(', ')} WHERE userId = ? AND fridgeId = ?`;
-      values.push(userId, fridgeId);
-
-      console.log("Executing SQL:", sql, values);
-
-      result = await executeSQL(sql, values);
-
-      console.log("Update result:", result);
+      let result = await executeSQL(sql, sqlValues);
 
       if (result.affectedRows > 0) {
           res.json({ success: true });
@@ -844,6 +835,9 @@ app.patch("/api/fridge-item/:id", isAuth, async function(req, res) {
       res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+
+
 
 
 
