@@ -8,7 +8,6 @@ $(document).ready(function () {
     function updateField(fieldName, value, fridgeId) {
         const data = {
             [fieldName]: value,
-            ingredientName: $('#item-name').val(),
             shoppingListId: $('#shopping-list-id').val()
         };
     
@@ -37,8 +36,7 @@ $(document).ready(function () {
                 $('<p>', { text: `Unit: ${item.unit}` }),
                 $('<p>', { text: `Expiry Date: ${item.expiryDate || 'N/A'}` }),
                 $('<p>', { text: `Shopping List ID: ${item.shoppingListId || 'N/A'}` }),
-                $('<p>', { text: `Is Opened: ${item.isOpened ? 'Yes' : 'No'}` }),
-                $('<p>', { text: `Is Leftover: ${item.isLeftover ? 'Yes' : 'No'}` })
+                $('<p>', { text: `Is Leftover: ${item.isleftover ? 'Yes' : 'No'}` })
             );
 
             fridgeItemsContainer.append(itemBox);
@@ -52,40 +50,47 @@ $(document).ready(function () {
     }
 
     // Function to open the edit modal and populate form fields
-    function openEditModal(fridgeId) {
-        $.ajax({
-            type: 'GET',
-            url: `/api/fridge-item/${fridgeId}`,
-            success: function (response) {
-                $('#fridge-id').val(response.fridgeId);
-                $('#item-name').val(response.ingredientName);
-                $('#item-quantity').val(response.quantity);
-                $('#item-unit').val(response.unit);
-                $('#item-expiry').val(response.expiryDate);
-                $('#shopping-list-id').val(response.shoppingListId);
-                $('#is-opened').prop('checked', response.isOpened);
-                $('#is-leftover').prop('checked', response.isLeftover);
+    // Function to open the edit modal and populate form fields
+function openEditModal(fridgeId) {
+    $.ajax({
+        type: 'GET',
+        url: `/api/fridge-item/${fridgeId}`,
+        success: function (response) {
+            $('#fridge-id').val(response.fridgeId);
+            $('#item-name').val(response.ingredientName);
+            $('#item-quantity').val(response.quantity);
+            $('#item-unit').val(response.unit);
+            $('#item-expiry').val(response.expiryDate);
+            $('#shopping-list-id').val(response.shoppingListId);
+            $('#is-opened').val(response.isOpened);
+            $('#is-leftover').prop('checked', response.isLeftover);
 
-                modal.css('display', 'block');
-                
-                // Attach blur event listeners for inputs
-                $('#item-name, #item-quantity, #item-unit, #item-expiry, #shopping-list-id').blur(function() {
-                    const fieldToUpdate = $(this).attr('id').replace('item-', '');
-                    const value = $(this).val();
-                    updateField(fieldToUpdate, value, fridgeId);
-                });
+            modal.css('display', 'block');
+            
+            // Attach blur event listeners for inputs
+            $('#item-name, #item-quantity, #item-unit, #item-expiry').blur(function() {
+                const fieldToUpdate = $(this).attr('id').replace('item-', '');
+                const value = $(this).val();
+                updateField(fieldToUpdate, value, fridgeId);
+            });
 
-                $('#is-opened, #is-leftover').change(function() {
-                    const fieldToUpdate = $(this).attr('id');
-                    const value = $(this).is(':checked');
-                    updateField(fieldToUpdate, value, fridgeId);
-                });
-            },
-            error: function (xhr, status, error) {
-                console.error('Error fetching fridge item:', error);
-            }
-        });
-    }
+            $('#is-opened').change(function() {
+                const fieldToUpdate = $(this).attr('id').replace('is-', '');
+                const value = $(this).val();
+                updateField(fieldToUpdate, value, fridgeId);
+            });
+
+            $('#is-leftover').change(function() {
+                const fieldToUpdate = $(this).attr('id').replace('is-', '');
+                const value = $(this).is(':checked');
+                updateField(fieldToUpdate, value, fridgeId);
+            });
+        },
+        error: function (xhr, status, error) {
+            console.error('Error fetching fridge item:', error);
+        }
+    });
+}
 
     // Function to close the edit modal
     function closeEditModal() {

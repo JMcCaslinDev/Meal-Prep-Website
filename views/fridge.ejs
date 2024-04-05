@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html>
-
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
@@ -8,9 +7,9 @@
   <link href="/css/main.css" rel="stylesheet">
   <title>My Fridge</title>
 </head>
-
 <body>
   <%- include("partials/navbar.ejs") %>
+  
   <div class="container mt-4">
     <h1>My Fridge</h1>
     <div id="fridge-items-container"></div>
@@ -19,39 +18,44 @@
   <!-- Fridge Modal -->
   <div id="item-modal" class="modal fridge-modal">
     <div class="modal-content">
-      <span class="close">&times;</span>
-      <h2>Edit Fridge Item</h2>
+      <div class="modal-header">
+        <span class="close">&times;</span>
+      </div>
       <form id="edit-item-form">
         <input type="hidden" id="fridge-id">
-        <div class="mb-3">
+        <div class="input-group">
           <label for="item-name" class="form-label">Item Name</label>
           <input type="text" class="form-control" id="item-name" required>
         </div>
-        <div class="mb-3">
+        <div class="input-group">
           <label for="item-quantity" class="form-label">Quantity</label>
           <input type="number" class="form-control" id="item-quantity" required>
         </div>
-        <div class="mb-3">
+        <div class="input-group">
           <label for="item-unit" class="form-label">Unit</label>
           <input type="text" class="form-control" id="item-unit" required>
         </div>
-        <div class="mb-3">
+        <div class="input-group">
           <label for="item-expiry" class="form-label">Expiry Date</label>
           <input type="date" class="form-control" id="item-expiry">
         </div>
-        <div class="mb-3">
+        <div class="input-group">
           <label for="shopping-list-id" class="form-label">Shopping List ID</label>
-          <input type="number" class="form-control" id="shopping-list-id">
+          <span id="shopping-list-id" class="form-text"></span>
         </div>
-        <div class="mb-3 form-check">
-          <input type="checkbox" class="form-check-input" id="is-opened">
-          <label class="form-check-label" for="is-opened">Is Opened</label>
+        <div class="input-group">
+          <label for="is-opened" class="form-label">Opened On </label>
+          <input type="datetime-local" class="form-control" id="is-opened">
         </div>
-        <div class="mb-3 form-check">
+        <div class="input-group form-check">
+          <label class="form-check-label" for="is-leftover">Is This A Leftover?</label>
           <input type="checkbox" class="form-check-input" id="is-leftover">
-          <label class="form-check-label" for="is-leftover">Is Leftover</label>
         </div>
-        <button type="button" class="btn btn-danger" id="delete-item-btn">Delete Item</button>
+        <!-- Separator Line -->
+        <div class="modal-separator"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" id="delete-item-btn">Delete Item</button>
+        </div>
       </form>
     </div>
   </div>

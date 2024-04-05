@@ -796,43 +796,48 @@ app.get("/api/fridge-item/:id", isAuth, async function(req, res) {
 
 app.patch("/api/fridge-item/:id", isAuth, async function(req, res) {
   try {
-      const userId = await getUserIdFromSessionID(req.sessionID);
-      const fridgeId = req.params.id;
+    const userId = await getUserIdFromSessionID(req.sessionID);
+    const fridgeId = req.params.id;
+    console.log("PATCH request received for fridgeId:", fridgeId);
+    console.log("Request body:", req.body);
 
-      console.log("PATCH request received for fridgeId:", fridgeId);
-      console.log("Request body:", req.body);
-
-      // Translate the request body to the correct column names
-      // and ensure that boolean values are converted to 1 or 0 for the database.
-      const updates = {};
-      for (const key in req.body) {
-          if (key === 'is-opened') {
-              updates['isOpened'] = req.body[key] ? 1 : 0;
-          } else if (key === 'is-leftover') {
-              updates['isLeftover'] = req.body[key] ? 1 : 0;
-          } else {
-              updates[key] = req.body[key];
-          }
+    // Translate the request body to the correct column names
+    // and ensure that boolean values are converted to 1 or 0 for the database.
+    const updates = {};
+    for (const key in req.body) {
+      console.log("\nKey: ", key, "\n")
+      if (key === 'opened') {
+        updates['isOpened'] = req.body[key] ? new Date(req.body[key]).toISOString().slice(0, 19).replace('T', ' ') : null;
+      } else if (key === 'leftover') {
+        updates['isLeftover'] = req.body[key] ? 1 : 0;
+      } else if (key === 'name') {
+        updates['ingredientName'] = req.body[key];
+      } else if (key === 'quantity') {
+        updates['quantity'] = req.body[key];
+      } else if (key === 'unit') {
+        updates['unit'] = req.body[key];
+      } else if (key === 'expiry') {
+        updates['expiryDate'] = req.body[key];
       }
+    }
 
-      // Construct the SQL update statement dynamically based on the fields to be updated.
-      const updateClauses = Object.keys(updates).map(field => `${field} = ?`);
-      const sqlValues = [...Object.values(updates), userId, fridgeId];
+    // Construct the SQL update statement dynamically based on the fields to be updated.
+    console.log("\nupdated: ", updates, "\n")
+    const updateClauses = Object.keys(updates).map(field => `${field} = ?`);
+    console.log("\nupdateClauses: ", updateClauses, "\n")
+    const sqlValues = [...Object.values(updates), userId, fridgeId];
+    let sql = `UPDATE fridge SET ${updateClauses.join(', ')} WHERE userId = ? AND fridgeId = ?`;
+    console.log("Executing SQL:", sql, sqlValues);
 
-      let sql = `UPDATE fridge SET ${updateClauses.join(', ')} WHERE userId = ? AND fridgeId = ?`;
-
-      console.log("Executing SQL:", sql, sqlValues);
-
-      let result = await executeSQL(sql, sqlValues);
-
-      if (result.affectedRows > 0) {
-          res.json({ success: true });
-      } else {
-          res.status(404).json({ error: "Fridge item not found or not updated" });
-      }
+    let result = await executeSQL(sql, sqlValues);
+    if (result.affectedRows > 0) {
+      res.json({ success: true });
+    } else {
+      res.status(404).json({ error: "Fridge item not found or not updated" });
+    }
   } catch (error) {
-      console.error('PATCH /api/fridge-item/:id Error:', error);
-      res.status(500).json({ error: "Internal Server Error" });
+    console.error('PATCH /api/fridge-item/:id Error:', error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
