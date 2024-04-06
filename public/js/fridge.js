@@ -49,7 +49,7 @@ $(document).ready(function () {
         });
     }
 
-    // Function to open the edit modal and populate form fields
+
     // Function to open the edit modal and populate form fields
 function openEditModal(fridgeId) {
     $.ajax({
@@ -61,7 +61,7 @@ function openEditModal(fridgeId) {
             $('#item-quantity').val(response.quantity);
             $('#item-unit').val(response.unit);
             $('#item-expiry').val(response.expiryDate);
-            $('#shopping-list-id').val(response.shoppingListId);
+            $('#shopping-list-id').text(response.shoppingListId);
             $('#is-opened').val(response.isOpened);
             $('#is-leftover').prop('checked', response.isLeftover);
 

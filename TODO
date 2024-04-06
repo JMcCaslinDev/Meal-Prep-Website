@@ -28,9 +28,10 @@
 
 14. Fix weird Navbar spacing on right and left sides of it on shopping list page from main.css 
 
+15. Add ingredientId to fridge table as a column so can be linked back to the specific ingredient info in the table such as the choosen url image that gets brought into the fridge items and edit modal.
+
 #   Fridge
 - Add fridge item functionality
-- Delete item from fridge with little x next to item
 - Add the date next to items in fridge
 - Add expiration date for items
 - 
