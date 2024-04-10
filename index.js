@@ -1375,6 +1375,41 @@ async function executeSQL(sql, params) {
   }
 }
 
+import winston from 'winston';
+import DailyRotateFile from 'winston-daily-rotate-file';
+
+// Create a logger instance
+const logger = winston.createLogger({
+  level: 'error',
+  format: winston.format.json(),
+  defaultMeta: { service: 'meal-prep-website' },
+  transports: [
+    new DailyRotateFile({
+      filename: 'logs/error-%DATE%.log',
+      datePattern: 'YYYY-MM-DD',
+      maxSize: '10m',
+      maxFiles: '7d',
+    }),
+  ],
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  // Log the error
+  logger.error(err.stack);
+
+  // Check if the error is a known handled error
+  if (err.statusCode) {
+    res.status(err.statusCode).json({ error: err.message });
+  } else {
+    // Unknown unhandled error
+    res.status(500).json({ error: 'Internal Server Error' });
+
+    // Log the unhandled error separately for easier identification
+    logger.error('Unhandled error:', err);
+  }
+});
+
 
 //  start server
 app.listen(3000, () => {
