@@ -31,10 +31,11 @@
 15. Add ingredientId to fridge table as a column so can be linked back to the specific ingredient info in the table such as the choosen url image that gets brought into the fridge items and edit modal.
 
 #   Fridge
-- Add fridge item functionality
-- Add the date next to items in fridge
-- Add expiration date for items
-- 
+- Populate dates when edit modal is opened from database, currently no dates are displayed on modal open.
+- Add Image to fridge items.
+- Add functionality to edit the image url inside edit modal, if this makes sense with image storage structure in the sql storing image url in ingredient table i beleive.
+- Fix the edit modal delete button, currently does nothing after confirming the delete.
+- Fix isLeftover checkbox, currently too wide
 
 
 
