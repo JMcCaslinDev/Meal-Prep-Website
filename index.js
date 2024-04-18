@@ -2,6 +2,7 @@ import fetch from 'node-fetch';
 import express from "express";
 // import mysql from 'mysql';
 import mysql from 'mysql2/promise';
+import Url from 'url-parse';
 import session from 'express-session';
 import bcrypt from 'bcrypt';
 import { Mutex } from 'async-mutex';
@@ -15,6 +16,8 @@ dotenv.config();
 const app = express();
 const pool = dbConnection();
 const mutex = new Mutex();
+
+const JAWSDB_URL = new Url(process.env.JAWSDB_URL);
 
 
 //second api bmi calculator
@@ -1346,17 +1349,17 @@ app.get("/dbTest", async function(req, res) {
 
 
 
-
 // Connect to the database using mysql2 with promise support
 function dbConnection() {
   const pool = mysql.createPool({
-    connectionLimit: 10,
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-    connectTimeout: 30000 // 30 seconds
+    host: JAWSDB_URL.hostname,
+    user: JAWSDB_URL.username,
+    password: JAWSDB_URL.password,
+    database: JAWSDB_URL.pathname.slice(1),
+    port: JAWSDB_URL.port,
+    connectTimeout: 30000   // Most likely not needed but handles bad or slow connections gracefully
   });
+  
 
   return pool;
 }
@@ -1411,7 +1414,7 @@ app.use((err, req, res, next) => {
 });
 
 
-//  start server
-app.listen(3000, () => {
-  console.log("Expresss server running...")
+// start server
+app.listen(JAWSDB_URL.port || 3000, () => {
+  console.log("Express server running...")
 })
