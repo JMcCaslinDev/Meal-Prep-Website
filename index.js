@@ -14,10 +14,12 @@ import { exit } from 'process';
 dotenv.config();
 
 const app = express();
+
+const JAWSDB_URL = new Url(process.env.JAWSDB_URL);
 const pool = dbConnection();
 const mutex = new Mutex();
 
-const JAWSDB_URL = new Url(process.env.JAWSDB_URL);
+
 
 
 //second api bmi calculator
