@@ -1430,8 +1430,8 @@ app.use((err, req, res, next) => {
   }
 });
 
-
+const PORT = process.env.PORT || 3000;
 // start server
-app.listen(JAWSDB_URL.port || 3000 || 3306, () => {
+app.listen(PORT, () => {
   console.log("Express server running...")
 })
