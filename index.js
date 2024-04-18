@@ -1432,6 +1432,6 @@ app.use((err, req, res, next) => {
 
 
 // start server
-app.listen(JAWSDB_URL.port || 3000, () => {
+app.listen(JAWSDB_URL.port || 3000 || 3306, () => {
   console.log("Express server running...")
 })
