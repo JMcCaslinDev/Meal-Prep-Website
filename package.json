@@ -10,6 +10,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": "20.12.2",
+    "npm": "10.5.2"
+  },
   "dependencies": {
     "@types/node": "^18.0.6",
     "async-mutex": "^0.4.0",
