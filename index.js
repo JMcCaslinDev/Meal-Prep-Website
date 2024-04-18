@@ -1349,6 +1349,7 @@ app.get("/dbTest", async function(req, res) {
 
 
 
+
 // Connect to the database using mysql2 with promise support
 function dbConnection() {
   const pool = mysql.createPool({
@@ -1359,7 +1360,21 @@ function dbConnection() {
     port: JAWSDB_URL.port,
     connectTimeout: 30000   // Most likely not needed but handles bad or slow connections gracefully
   });
-  
+
+  // Log successful connection
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error('Error connecting to database:', err);
+    } else {
+      console.log('Connected to database');
+      connection.release(); // Release the connection after successful connection
+    }
+  });
+
+  // Handle connection errors
+  pool.on('error', (err) => {
+    console.error('Database connection error:', err);
+  });
 
   return pool;
 }
