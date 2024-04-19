@@ -1144,6 +1144,18 @@ app.get('/myRecipes', isAuth, async (req, res) => {
     let sqlRecipes = `SELECT id, imageLink, recipeName, instructions, totalCalories, totalProtein, totalCarbs, totalFats, totalFiber, totalSugar FROM recipes WHERE userId = ?;`;
     let recipesData = await executeSQL(sqlRecipes, [userId]);
 
+    // Check if there are any recipes
+    if (recipesData.length === 0) {
+      console.log("No recipes found for user.");
+      // Optionally, handle the situation when no recipes are found
+      res.render('myRecipes', {
+        userInfo: { userId: userId },
+        data: [], // No recipes
+        allIngredients: allIngredientsData
+      });
+      return;
+    }
+
     // For each recipe, fetch the ingredients from recipes_ingredients including the ingredient_id
     for (let recipe of recipesData) {
       let sqlIngredients = `
@@ -1167,8 +1179,6 @@ app.get('/myRecipes', isAuth, async (req, res) => {
     console.log("\nrecipesData: ", recipesData, "\n")
     console.log("\nallIngredientsData: ", allIngredientsData, "\n")
 
-    console.log("\n ingredients object: ", recipesData[0].ingredients, "\n")
-
     // Send the recipes data with ingredients and all ingredients to the template
     res.render('myRecipes', {
       userInfo: { userId: userId },
@@ -1180,6 +1190,7 @@ app.get('/myRecipes', isAuth, async (req, res) => {
     res.status(500).send('Error retrieving recipes');
   }
 });
+
 
 
 
