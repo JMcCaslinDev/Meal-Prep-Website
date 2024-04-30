@@ -217,6 +217,8 @@ async function saveCalendar() {
       console.log('Meals saved successfully');
       // Additional success handling if needed
       // Call the function to update the shopping list
+      console.log("\ncurrentStartDate: ", currentStartDate, "\n");
+      console.log("\ncurrentEndDate: ", currentEndDate, "\n");
       updateShoppingList(currentStartDate, currentEndDate);
     } else {
       throw new Error('Failed to save meals');
@@ -273,7 +275,7 @@ document.querySelectorAll('.add-meal-button').forEach(button => {
   });
 });
 
-
+  //  TODO: Test this may not be working properly either here or in the client side divs
   // This function will update the day columns with the correct date for each day of the week
   function assignDatesToDays(startDate) {
     console.log("Inside assignDatesToDays function:");
@@ -325,24 +327,6 @@ document.querySelectorAll('.add-meal-button').forEach(button => {
       console.error('Error updating shopping list:', error);
     }
   }
-
-
-  // function renderShoppingList(shoppingListItems) {
-  //   const shoppingListContainer = document.getElementById('shoppingList');
-  //   // Clear the existing shopping list
-  //   shoppingListContainer.innerHTML = '';
-  
-  //   // Render the updated shopping list items
-  //   shoppingListItems.forEach(item => {
-  //     const listItem = document.createElement('li');
-  //     listItem.textContent = `${item.ingredientName} - ${item.quantity} ${item.unit}`;
-  //     shoppingListContainer.appendChild(listItem);
-  //   });
-  // }
-  
-
-
-  
 
 
   // Call this function on page load to populate the recipe dropdowns

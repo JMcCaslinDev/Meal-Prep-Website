@@ -575,7 +575,7 @@ app.post("/api/updateShoppingList", isAuth, async function(req, res) {
     console.log("\nFound userId: ", userId, "\n");
     try {
       // Fetch meal calendar entries for the specified date range
-      let sql = `SELECT recipeId FROM meal_prep_website_database.mealcalendar WHERE userId = ? AND timeSlot BETWEEN ? AND ?`;
+      let sql = `SELECT recipeId FROM mealcalendar WHERE userId = ? AND timeSlot BETWEEN ? AND ?`;
       let calendarRows = await executeSQL(sql, [userId, startDate + " 00:00:00", endDate + " 23:59:59"]);
       console.log("\nstartDate:", startDate, "\n");
       console.log("\nendDate:", endDate, "\n");
