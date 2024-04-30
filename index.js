@@ -468,7 +468,7 @@ app.get('/api/week-data', isAuth, async (req, res) => {
     console.log("\nendString: ", endString, "\n")
 
     // Fetch meal data for the user within the calculated date range
-    const sql = `SELECT * FROM mealCalendar WHERE userId = ? AND timeSlot BETWEEN ? AND ?`;
+    const sql = `SELECT * FROM mealcalendar WHERE userId = ? AND timeSlot BETWEEN ? AND ?`;
     const meals = await executeSQL(sql, [userId, startString, endString]);
     console.log("\nMeals: ", meals, "\n")
           
