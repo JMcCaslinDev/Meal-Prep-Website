@@ -125,32 +125,24 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Populate the calendar with the meal tags from the database of users chosen meals
-  function populateCalendar(mealData) {
-    console.log("\nEntered populateCalendar function\n");
+  // Populate the calendar with the meal tags from the database of users chosen meals
+function populateCalendar(mealData) {
+  console.log("\nEntered populateCalendar function\n");
 
-    clearMealSlots();
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  clearMealSlots();
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-    const mealsByDay = {};
-    mealData.forEach(meal => {
-      const date = new Date(meal.timeSlot);
-      const dayIndex = date.getDay();
-      const dayName = days[dayIndex].toLowerCase();
-      if (!mealsByDay[dayName]) {
-        mealsByDay[dayName] = [];
-      }
-      mealsByDay[dayName].push(meal);
-    });
+  mealData.forEach(meal => {
+    const date = new Date(meal.timeSlot);
+    const dayIndex = date.getDay();
+    const adjustedDayIndex = (dayIndex + 6) % 7; // Adjust the day index to match Monday as the first day
 
-    days.forEach((day, index) => {
-      const mealSlot = document.getElementById(`meal-slot-${index}`);
-      console.log(mealSlot);
-      const meals = mealsByDay[day.toLowerCase()] || [];
-      meals.forEach(meal => {
-        createMealTag(index, meal);
-      });
-    });
-  }
+    const mealSlot = document.getElementById(`meal-slot-${adjustedDayIndex}`);
+    console.log(mealSlot);
+
+    createMealTag(adjustedDayIndex, meal);
+  });
+}
 
   // Function to send meal data to the server
   async function saveCalendar() {
