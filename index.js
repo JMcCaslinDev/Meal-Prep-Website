@@ -503,50 +503,62 @@ app.get('/api/user-recipes', isAuth, async (req, res) => {
 });
 
 
+
+//  Save button triggers this on meal calendar page
 app.post('/weekRecipes', isAuth, async (req, res) => {
   console.log("Inside /weekRecipes POST route");
 
-  // Get the user ID from the session
+  // Retrieve the user ID from the session
   let userId = await getUserIdFromSessionID(req.sessionID);
   console.log("User ID:", userId);
 
-  // Log the form data received from the request
+  // Log the form data received from the request to understand what's being processed
   console.log('Form data:', req.body);
 
+  // Check if the userId is valid
   if (userId) {
     try {
-      // Start transaction
+      // Start a database transaction to ensure all or none of the changes are committed
       await executeSQL('START TRANSACTION');
+      console.log("Transaction started");
 
-      // Convert start and end dates to include time
+      // Convert start and end dates from the form input to proper SQL datetime formats
       const startDate = moment(req.body.startDate, 'MM-DD-YYYY').startOf('day').format('YYYY-MM-DD HH:mm:ss');
       const endDate = moment(req.body.endDate, 'MM-DD-YYYY').endOf('day').format('YYYY-MM-DD HH:mm:ss');
+      console.log("Processed Dates:", startDate, "to", endDate);
 
-      // Delete existing recipes in the meal calendar for the given week and user
+      // Delete existing recipes in the meal calendar for the given week and user to prepare for new data
       let deleteSql = `DELETE FROM mealcalendar WHERE userId = ? AND timeSlot BETWEEN ? AND ?`;
       await executeSQL(deleteSql, [userId, startDate, endDate]);
+      console.log("Existing meals deleted");
 
-      // Insert new meal calendar entries
-      let insertSql = `INSERT INTO mealcalendar (userId, recipeId, timeSlot) VALUES ?`;
-      let values = req.body.meals.map(meal => [userId, meal.recipeId, meal.timeSlot]);
-      await executeSQL(insertSql, [values]);
+      // Prepare to insert new meal calendar entries if any exist
+      if (req.body.meals && req.body.meals.length > 0) {
+        let insertSql = `INSERT INTO mealcalendar (userId, recipeId, timeSlot) VALUES ?`;
+        let values = req.body.meals.map(meal => [userId, meal.recipeId, meal.timeSlot]);
+        await executeSQL(insertSql, [values]);
+        console.log("New meals inserted");
+      } else {
+        console.log("No meals provided to insert");
+      }
 
-      // Commit transaction
+      // Commit the transaction to finalize changes
       await executeSQL('COMMIT');
+      console.log("Transaction committed");
 
+      // Send a success response to the client
       res.json({ status: 'success', message: 'Meals updated successfully' });
     } catch (error) {
-      // Rollback transaction in case of error
+      // Rollback transaction in case of any error to avoid partial data updates
       await executeSQL('ROLLBACK');
       console.error('Error updating week meals:', error);
       res.status(500).json({ status: 'error', message: 'Failed to update meals' });
     }
   } else {
+    // Respond with an unauthorized status if no valid user is found
     res.status(401).json({ status: 'error', message: 'Unauthorized user' });
   }
 });
-
-
 
 
 
