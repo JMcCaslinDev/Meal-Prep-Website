@@ -515,38 +515,29 @@ app.get('/api/user-recipes', isAuth, async (req, res) => {
 app.post('/weekRecipes', isAuth, async (req, res) => {
   console.log("Inside /weekRecipes POST route");
 
-  // Retrieve the user ID from the session
   let userId = await getUserIdFromSessionID(req.sessionID);
   console.log("User ID:", userId);
-
-  // Log the form data received from the request to understand what's being processed
   console.log('Form data:', req.body);
 
-  // Retrieve the timezone from the request
   const clientTimezone = req.body.timezone;
+  console.log("\nClient Timezone passed to backend: ", clientTimezone, "\n");
 
-  // Check if the userId is valid
   if (userId) {
     try {
-      // Start a database transaction to ensure all or none of the changes are committed
       await executeSQL('START TRANSACTION');
       console.log("Transaction started");
 
-      // Convert start and end dates from the form input to proper SQL datetime formats, adjusting for timezone
       const startDate = moment.tz(req.body.startDate, 'MM-DD-YYYY', clientTimezone).utc().format('YYYY-MM-DD HH:mm:ss');
       const endDate = moment.tz(req.body.endDate, 'MM-DD-YYYY', clientTimezone).utc().format('YYYY-MM-DD HH:mm:ss');
       console.log("Processed Dates:", startDate, "to", endDate);
 
-      // Delete existing recipes in the meal calendar for the given week and user to prepare for new data
       let deleteSql = `DELETE FROM mealcalendar WHERE userId = ? AND timeSlot BETWEEN ? AND ?`;
       await executeSQL(deleteSql, [userId, startDate, endDate]);
       console.log("Existing meals deleted");
 
-      // Prepare to insert new meal calendar entries if any exist
       if (req.body.meals && req.body.meals.length > 0) {
         let insertSql = `INSERT INTO mealcalendar (userId, recipeId, timeSlot) VALUES ?`;
         let values = req.body.meals.map(meal => {
-          // Convert each meal time from local timezone to UTC before storing in the database
           const utcTimeSlot = moment.tz(meal.timeSlot, clientTimezone).utc().format('YYYY-MM-DD HH:mm:ss');
           return [userId, meal.recipeId, utcTimeSlot];
         });
@@ -556,23 +547,19 @@ app.post('/weekRecipes', isAuth, async (req, res) => {
         console.log("No meals provided to insert");
       }
 
-      // Commit the transaction to finalize changes
       await executeSQL('COMMIT');
       console.log("Transaction committed");
-
-      // Send a success response to the client
       res.json({ status: 'success', message: 'Meals updated successfully' });
     } catch (error) {
-      // Rollback transaction in case of any error to avoid partial data updates
       await executeSQL('ROLLBACK');
       console.error('Error updating week meals:', error);
       res.status(500).json({ status: 'error', message: 'Failed to update meals' });
     }
   } else {
-    // Respond with an unauthorized status if no valid user is found
     res.status(401).json({ status: 'error', message: 'Unauthorized user' });
   }
 });
+
 
 
 
