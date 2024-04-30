@@ -595,12 +595,12 @@ app.post("/api/updateShoppingList", isAuth, async function(req, res) {
         SELECT i.id AS ingredientId, i.name AS ingredientName, SUM(ri.quantity * mc.count) AS quantity, ri.unit
         FROM (
           SELECT recipeId, COUNT(*) AS count
-          FROM meal_prep_website_database.mealcalendar
+          FROM mealcalendar
           WHERE userId = ? AND timeSlot BETWEEN ? AND ?
           GROUP BY recipeId
         ) mc
-        JOIN meal_prep_website_database.recipes_ingredients ri ON mc.recipeId = ri.recipe_id
-        JOIN meal_prep_website_database.ingredients i ON ri.ingredient_id = i.id
+        JOIN recipes_ingredients ri ON mc.recipeId = ri.recipe_id
+        JOIN ingredients i ON ri.ingredient_id = i.id
         WHERE mc.recipeId IN (?)
         GROUP BY i.id, i.name, ri.unit
       `;
@@ -609,12 +609,12 @@ app.post("/api/updateShoppingList", isAuth, async function(req, res) {
       console.log("\ningredientRows: ", ingredientRows, "\n");
 
       // Clear the shopping list for the specified date range before inserting new entries
-      sql = `DELETE FROM meal_prep_website_database.shoppinglist WHERE userId = ? AND weekDate BETWEEN ? AND ?`;
+      sql = `DELETE FROM shoppinglist WHERE userId = ? AND weekDate BETWEEN ? AND ?`;
       await executeSQL(sql, [userId, startDate, endDate]);
 
       // Insert the aggregated ingredients into the shopping list
       let insertSql = `
-        INSERT INTO meal_prep_website_database.shoppinglist (userId, ingredientId, recipeId, neededQuantity, unit, checked, weekDate)
+        INSERT INTO shoppinglist (userId, ingredientId, recipeId, neededQuantity, unit, checked, weekDate)
         VALUES ?
       `;
       let insertValues = ingredientRows.map(row => [userId, row.ingredientId, null, row.quantity, row.unit, 0, startDate]);
