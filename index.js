@@ -426,14 +426,14 @@ app.get('/calendar', isAuth, async (req, res) => {
 
 
 
-//  Essentially the new version of the calendar get function
 app.get('/api/week-data', isAuth, async (req, res) => {
-  console.log("\nEntered api/week-data route\n")
+  console.log("\nEntered api/week-data route\n");
 
-  // Extract the week number from the query parameters
+  // Extract the week number and timezone from the query parameters
   const weekNumber = parseInt(req.query.week);
+  const clientTimezone = req.query.timezone;
 
-  console.log("\nweekNumber: ", weekNumber, "\n")
+  console.log("\nweekNumber: ", weekNumber, "\n");
 
   // Check if the weekNumber is a valid number
   if (isNaN(weekNumber) || weekNumber < 1 || weekNumber > 53) {
@@ -444,41 +444,49 @@ app.get('/api/week-data', isAuth, async (req, res) => {
     // Use the session ID to get the user ID
     const userId = await getUserIdFromSessionID(req.sessionID);
 
-    // Calculate the date range for the requested week number
+    // Calculate the date range for the requested week number in the user's local timezone
     const year = new Date().getFullYear(); // Use the current year or a different logic if required
-    let startDate = moment().year(year).week(weekNumber).startOf('isoWeek');
+    let startDate = moment.tz(year, clientTimezone).week(weekNumber).startOf('isoWeek');
     let endDate = moment(startDate).endOf('isoWeek');
 
     // Handle the case when the current date is Sunday
-    const currentDay = moment().day();
-    if (currentDay === 0) {
-      // If it's Sunday, treat it as the start of the new week
-      startDate = moment().year(year).week(weekNumber).startOf('isoWeek');
+    if (moment.tz(clientTimezone).day() === 0) {
+      // Adjust start date if it's Sunday, treating it as the start of the new week
+      startDate = moment.tz(year, clientTimezone).week(weekNumber).startOf('isoWeek');
       endDate = moment(startDate).add(6, 'days').endOf('day');
     }
 
-    // Convert to string for MySQL
-    const startString = startDate.format('YYYY-MM-DD HH:mm:ss');
-    const endString = endDate.format('YYYY-MM-DD HH:mm:ss');
+    // Convert to string for MySQL in UTC
+    const startStringUTC = startDate.utc().format('YYYY-MM-DD HH:mm:ss');
+    const endStringUTC = endDate.utc().format('YYYY-MM-DD HH:mm:ss');
 
-    const newStartDate = startDate.format('MM-DD-YYYY');
-    const newEndDate = endDate.format('MM-DD-YYYY');
-
-    console.log("\nstartString: ", startString, "\n")
-    console.log("\nendString: ", endString, "\n")
+    console.log("\nstartStringUTC: ", startStringUTC, "\n");
+    console.log("\nendStringUTC: ", endStringUTC, "\n");
 
     // Fetch meal data for the user within the calculated date range
     const sql = `SELECT * FROM mealcalendar WHERE userId = ? AND timeSlot BETWEEN ? AND ?`;
-    const meals = await executeSQL(sql, [userId, startString, endString]);
-    console.log("\nMeals: ", meals, "\n")
-          
-    // Return the meal data as JSON
-    res.json({ meals: meals, startString: newStartDate, endString: newEndDate});
+    const meals = await executeSQL(sql, [userId, startStringUTC, endStringUTC]);
+
+    // Convert each meal's timeSlot to local timezone before sending to client
+    const convertedMeals = meals.map(meal => {
+      meal.timeSlot = moment.utc(meal.timeSlot).tz(clientTimezone).format('YYYY-MM-DD HH:mm:ss');
+      return meal;
+    });
+
+    console.log("\nMeals: ", convertedMeals, "\n");
+    
+    // Return the meal data as JSON with local date formatting
+    res.json({
+      meals: convertedMeals,
+      startString: startDate.format('MM-DD-YYYY'),
+      endString: endDate.format('MM-DD-YYYY')
+    });
   } catch (error) {
     console.error("Error fetching week data:", error);
     res.status(500).send('Error fetching data for the week.');
   }
 });
+
 
 
 
@@ -504,7 +512,6 @@ app.get('/api/user-recipes', isAuth, async (req, res) => {
 
 
 
-//  Save button triggers this on meal calendar page
 app.post('/weekRecipes', isAuth, async (req, res) => {
   console.log("Inside /weekRecipes POST route");
 
@@ -515,6 +522,9 @@ app.post('/weekRecipes', isAuth, async (req, res) => {
   // Log the form data received from the request to understand what's being processed
   console.log('Form data:', req.body);
 
+  // Retrieve the timezone from the request
+  const clientTimezone = req.body.timezone;
+
   // Check if the userId is valid
   if (userId) {
     try {
@@ -522,9 +532,9 @@ app.post('/weekRecipes', isAuth, async (req, res) => {
       await executeSQL('START TRANSACTION');
       console.log("Transaction started");
 
-      // Convert start and end dates from the form input to proper SQL datetime formats
-      const startDate = moment(req.body.startDate, 'MM-DD-YYYY').startOf('day').format('YYYY-MM-DD HH:mm:ss');
-      const endDate = moment(req.body.endDate, 'MM-DD-YYYY').endOf('day').format('YYYY-MM-DD HH:mm:ss');
+      // Convert start and end dates from the form input to proper SQL datetime formats, adjusting for timezone
+      const startDate = moment.tz(req.body.startDate, 'MM-DD-YYYY', clientTimezone).utc().format('YYYY-MM-DD HH:mm:ss');
+      const endDate = moment.tz(req.body.endDate, 'MM-DD-YYYY', clientTimezone).utc().format('YYYY-MM-DD HH:mm:ss');
       console.log("Processed Dates:", startDate, "to", endDate);
 
       // Delete existing recipes in the meal calendar for the given week and user to prepare for new data
@@ -535,7 +545,11 @@ app.post('/weekRecipes', isAuth, async (req, res) => {
       // Prepare to insert new meal calendar entries if any exist
       if (req.body.meals && req.body.meals.length > 0) {
         let insertSql = `INSERT INTO mealcalendar (userId, recipeId, timeSlot) VALUES ?`;
-        let values = req.body.meals.map(meal => [userId, meal.recipeId, meal.timeSlot]);
+        let values = req.body.meals.map(meal => {
+          // Convert each meal time from local timezone to UTC before storing in the database
+          const utcTimeSlot = moment.tz(meal.timeSlot, clientTimezone).utc().format('YYYY-MM-DD HH:mm:ss');
+          return [userId, meal.recipeId, utcTimeSlot];
+        });
         await executeSQL(insertSql, [values]);
         console.log("New meals inserted");
       } else {
@@ -559,6 +573,7 @@ app.post('/weekRecipes', isAuth, async (req, res) => {
     res.status(401).json({ status: 'error', message: 'Unauthorized user' });
   }
 });
+
 
 
 

@@ -16,14 +16,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
   fetchAndPopulateRecipes();
 
-  // Function to clear previous meal slots
   function clearMealSlots() {
     document.querySelectorAll('.meal-slot-container').forEach(slot => {
       slot.innerHTML = '';
     });
   }
 
-  // Function to create a meal tag
   function createMealTag(dayIndex, meal) {
     const mealTag = document.createElement('div');
     mealTag.className = 'meal-tag';
@@ -38,30 +36,24 @@ document.addEventListener('DOMContentLoaded', function() {
     defaultOption.selected = true;
     recipeSelect.appendChild(defaultOption);
 
-    console.log("Creating meal tag for day index:", dayIndex);
-    console.log("Meal object:", meal);
-
-    console.log("\nuserRecipes: ", userRecipes, "\n");
-
     if (Array.isArray(userRecipes)) {
       userRecipes.forEach(recipe => {
         const option = document.createElement('option');
         option.value = recipe.id;
         option.textContent = recipe.recipeName;
         recipeSelect.appendChild(option);
-        console.log("Added recipe option:", recipe.recipeName);
       });
     }
 
     if (meal && meal.recipeId) {
       recipeSelect.value = meal.recipeId;
-      console.log("Selected recipe ID:", meal.recipeId);
     }
 
     const timeInput = document.createElement('input');
     timeInput.type = 'time';
     timeInput.className = 'meal-time-input';
 
+    // Parsing the time in local timezone
     const timeSlot = new Date(meal.timeSlot);
     const hours = timeSlot.getHours().toString().padStart(2, '0');
     const minutes = timeSlot.getMinutes().toString().padStart(2, '0');
@@ -86,66 +78,51 @@ document.addEventListener('DOMContentLoaded', function() {
     if (mealSlotContainer) {
       mealSlotContainer.appendChild(mealTag);
     } else {
-      console.error('mealSlotContainer not found for dayIndex:', dayIndex);
+      console.error('MealSlotContainer not found for dayIndex:', dayIndex);
     }
   }
 
-  // Fetch recipes from the backend and populate the dropdowns
   async function fetchAndPopulateRecipes() {
     try {
       const response = await fetch('/api/user-recipes');
       userRecipes = await response.json();
-      console.log("Fetched user recipes:", userRecipes);
     } catch (error) {
       console.error('Failed to fetch recipes', error);
     }
   }
 
-  // Fetch data from the backend to initialize the calendar
   async function fetchDataForWeek(weekNumber) {
-    console.log("\ninside fetch data for week function\n");
-    const response = await fetch(`/api/week-data?week=${weekNumber}`);
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const response = await fetch(`/api/week-data?week=${weekNumber}&timezone=${timezone}`);
     const data = await response.json();
-    console.log("Data fetched: ", data);
     if (data) {
       currentStartDate = data.startString;
       currentEndDate = data.endString;
-      console.log("\ndata.startString: ", data.startString, "\n");
-      console.log("\ndata.endString: ", data.endString, "\n");
       updateWeekLabel(currentStartDate, currentEndDate);
     }
     return data;
   }
 
-  // Function to update the week label with the start and end dates
   function updateWeekLabel(startDate, endDate) {
-    currentStartDate = startDate;
-    currentEndDate = endDate;
-    weekLabel.textContent = `${startDate}  -  ${endDate}`;
+    weekLabel.textContent = `${startDate} - ${endDate}`;
   }
 
-  // Populate the calendar with the meal tags from the database of users chosen meals
-  // Populate the calendar with the meal tags from the database of users chosen meals
-function populateCalendar(mealData) {
-  console.log("\nEntered populateCalendar function\n");
+  function populateCalendar(mealData) {
+    clearMealSlots();
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-  clearMealSlots();
-  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    mealData.forEach(meal => {
+      const date = new Date(meal.timeSlot);
+      const dayIndex = date.getDay();
+      const adjustedDayIndex = (dayIndex + 6) % 7; // Adjust day index to match Monday as the first day
 
-  mealData.forEach(meal => {
-    const date = new Date(meal.timeSlot);
-    const dayIndex = date.getDay();
-    const adjustedDayIndex = (dayIndex + 6) % 7; // Adjust the day index to match Monday as the first day
+      const mealSlot = document.getElementById(`meal-slot-${adjustedDayIndex}`);
+      createMealTag(adjustedDayIndex, meal);
+    });
+  }
 
-    const mealSlot = document.getElementById(`meal-slot-${adjustedDayIndex}`);
-    console.log(mealSlot);
-
-    createMealTag(adjustedDayIndex, meal);
-  });
-}
-
-  // Function to send meal data to the server
   async function saveCalendar() {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const meals = [];
     document.querySelectorAll('.day-column').forEach((column, index) => {
       const day = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date(currentStartDate).getDay() + index % 7];
@@ -175,14 +152,13 @@ function populateCalendar(mealData) {
           weekNumber: currentWeekNumber,
           startDate: currentStartDate,
           endDate: currentEndDate,
-          meals: meals
+          meals: meals,
+          timezone: timezone
         })
       });
 
       if (response.ok) {
         console.log('Meals saved successfully');
-        console.log("\ncurrentStartDate: ", currentStartDate, "\n");
-        console.log("\ncurrentEndDate: ", currentEndDate, "\n");
         updateShoppingList(currentStartDate, currentEndDate);
       } else {
         throw new Error('Failed to save meals');
@@ -192,23 +168,17 @@ function populateCalendar(mealData) {
     }
   }
 
-  // Add the save button event listener
   saveButton.addEventListener('click', saveCalendar);
 
-  // Navigate to previous or next week
   function navigateWeeks(weekNumber) {
-    console.log("\nnavigateWeeks_weekNumber: ", weekNumber, "\n");
     fetchDataForWeek(weekNumber)
       .then(data => {
-        console.log("navigateweeks_data: ", data, "\n");
-        console.log("\nnavigateweeks_data.startString: ", data.startString, "\n");
         assignDatesToDays(data.startString);
         populateCalendar(data.meals);
       })
       .catch(error => console.error('Failed to fetch week data', error));
   }
 
-  // Add event listeners to week navigation buttons
   prevWeekButton.addEventListener('click', () => {
     currentWeekNumber -= 1;
     navigateWeeks(currentWeekNumber);
@@ -219,10 +189,8 @@ function populateCalendar(mealData) {
     navigateWeeks(currentWeekNumber);
   });
 
-  // Initial calendar setup for the current week
   navigateWeeks(currentWeekNumber);
 
-  // Event listener for the Add Meal buttons
   document.querySelectorAll('.add-meal-button').forEach(button => {
     button.addEventListener('click', function() {
       const dayIndex = this.getAttribute('data-day');
@@ -234,10 +202,7 @@ function populateCalendar(mealData) {
     });
   });
 
-  // assignDatesToDays function
   function assignDatesToDays(startDate) {
-    console.log("Inside assignDatesToDays function:");
-    
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     const startOfTheWeek = new Date(startDate);
   
@@ -249,20 +214,13 @@ function populateCalendar(mealData) {
         ('0' + currentDay.getDate()).slice(-2);
   
       const dayColumnId = 'day-' + day.toLowerCase();
-      console.log("Looking for dayColumn with ID:", dayColumnId);
-  
       const dayColumn = document.getElementById(dayColumnId);
       if (dayColumn) {
-        console.log("dayColumn found:", dayColumn);
         dayColumn.setAttribute('data-date', currentDayString);
-        console.log(currentDayString);
-      } else {
-        console.log("No element found for day:", day);
       }
     });
   }
 
-  // Function to update the shopping list
   async function updateShoppingList(startDate, endDate) {
     try {
       const response = await fetch(`/api/updateShoppingList?startDate=${startDate}&endDate=${endDate}`, {
