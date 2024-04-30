@@ -148,33 +148,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
   // Populate the calendar with the meal tags from the database of users choosen meals
-  function populateCalendar(mealData) {
-    console.log("\nEntered populateCalendar function\n");
+function populateCalendar(mealData) {
+  console.log("\nEntered populateCalendar function\n");
   
-    clearMealSlots();
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  clearMealSlots();
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   
-    const mealsByDay = {};
-    mealData.forEach(meal => {
-      const date = new Date(meal.timeSlot);
-      const dayIndex = date.getDay();
-      const adjustedDayIndex = (dayIndex + 6) % 7; // Adjust the day index to match your calendar order
-      const dayName = days[adjustedDayIndex].toLowerCase();
-      if (!mealsByDay[dayName]) {
-        mealsByDay[dayName] = [];
-      }
-      mealsByDay[dayName].push(meal);
+  const mealsByDay = {};
+  mealData.forEach(meal => {
+    const date = new Date(meal.timeSlot);
+    const dayIndex = date.getDay();
+    const dayName = days[dayIndex].toLowerCase();
+    if (!mealsByDay[dayName]) {
+      mealsByDay[dayName] = [];
+    }
+    mealsByDay[dayName].push(meal);
+  });
+  
+  days.forEach((day, index) => {
+    const mealSlot = document.getElementById(`meal-slot-${index}`);
+    console.log(mealSlot);
+    const meals = mealsByDay[day.toLowerCase()] || [];
+    meals.forEach(meal => {
+      createMealTag(index, meal);
     });
-  
-    days.forEach((day, index) => {
-      const mealSlot = document.getElementById(`meal-slot-${index}`);
-      console.log(mealSlot);
-      const meals = mealsByDay[day.toLowerCase()] || [];
-      meals.forEach(meal => {
-        createMealTag(index, meal);
-      });
-    });
-  }
+  });
+}
 
 
 // Function to send meal data to the server
@@ -275,41 +274,34 @@ document.querySelectorAll('.add-meal-button').forEach(button => {
   });
 });
 
-  //  TODO: Test this may not be working properly either here or in the client side divs
-  // This function will update the day columns with the correct date for each day of the week
-  function assignDatesToDays(startDate) {
-    console.log("Inside assignDatesToDays function:");
-    
-    // Adjust startDate to be a Monday
-    const tempDate = new Date(startDate);
-    // If startDate is not a Monday, adjust it to the following Monday
-    const dayOfWeek = tempDate.getDay();
-    const distanceToMonday = (dayOfWeek === 0) ? 1 : (8 - dayOfWeek);
-    tempDate.setDate(tempDate.getDate() + distanceToMonday);
-    const startOfTheWeek = tempDate;
 
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+// assignDatesToDays function
+function assignDatesToDays(startDate) {
+  console.log("Inside assignDatesToDays function:");
+  
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const startOfTheWeek = new Date(startDate);
 
-    days.forEach((day, index) => {
-      let currentDay = new Date(startOfTheWeek);
-      currentDay.setDate(currentDay.getDate() + index);
-      let currentDayString = currentDay.getFullYear() + '-' +
-        ('0' + (currentDay.getMonth() + 1)).slice(-2) + '-' + 
-        ('0' + currentDay.getDate()).slice(-2);
+  days.forEach((day, index) => {
+    let currentDay = new Date(startOfTheWeek);
+    currentDay.setDate(currentDay.getDate() + index);
+    let currentDayString = currentDay.getFullYear() + '-' +
+      ('0' + (currentDay.getMonth() + 1)).slice(-2) + '-' + 
+      ('0' + currentDay.getDate()).slice(-2);
 
-      const dayColumnId = 'day-' + day.toLowerCase();
-      console.log("Looking for dayColumn with ID:", dayColumnId);
+    const dayColumnId = 'day-' + day.toLowerCase();
+    console.log("Looking for dayColumn with ID:", dayColumnId);
 
-      const dayColumn = document.getElementById(dayColumnId);
-      if (dayColumn) {
-        console.log("dayColumn found:", dayColumn);
-        dayColumn.setAttribute('data-date', currentDayString);
-        console.log(currentDayString); // This will log the value of currentDayString
-      } else {
-        console.log("No element found for day:", day);
-      }
-    });
-  }
+    const dayColumn = document.getElementById(dayColumnId);
+    if (dayColumn) {
+      console.log("dayColumn found:", dayColumn);
+      dayColumn.setAttribute('data-date', currentDayString);
+      console.log(currentDayString);
+    } else {
+      console.log("No element found for day:", day);
+    }
+  });
+}
 
 
   // Function to update the shopping list
