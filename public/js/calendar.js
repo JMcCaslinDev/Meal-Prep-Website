@@ -245,20 +245,20 @@ document.addEventListener('DOMContentLoaded', function() {
   // assignDatesToDays function
   function assignDatesToDays(startDate) {
     console.log("Inside assignDatesToDays function:");
-
+    
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     const startOfTheWeek = new Date(startDate);
-
+  
     days.forEach((day, index) => {
       let currentDay = new Date(startOfTheWeek);
       currentDay.setDate(currentDay.getDate() + index);
       let currentDayString = currentDay.getFullYear() + '-' +
-        ('0' + (currentDay.getMonth() + 1)).slice(-2) + '-' +
+        ('0' + (currentDay.getMonth() + 1)).slice(-2) + '-' + 
         ('0' + currentDay.getDate()).slice(-2);
-
+  
       const dayColumnId = 'day-' + day.toLowerCase();
       console.log("Looking for dayColumn with ID:", dayColumnId);
-
+  
       const dayColumn = document.getElementById(dayColumnId);
       if (dayColumn) {
         console.log("dayColumn found:", dayColumn);
