@@ -233,3 +233,18 @@ body {
   align-self: center;
   padding: 10px 20px;
 }
+
+/* Done shopping button on shopping list page */
+#done-shopping {
+  display: block; /* Makes the button a block element */
+  margin: 0 auto; /* Centers the button horizontally */
+  width: 200px; /* Sets a fixed width for the button */
+}
+
+/* Done shopping button explanatory text */
+#done-shopping-explanatory-text {
+  text-align: center; /* Centers the text horizontally */
+  margin-top: 10px; /* Adds a little space between the button and the text */
+}
+
+
