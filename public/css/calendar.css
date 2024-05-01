@@ -157,4 +157,7 @@ body {
   background-color: #5a6268;
 }
 
-/* Additional styles can be added below as needed for customizing other elements */
+#bug-warning-calendar {
+  text-align: center; /* Centers the text horizontally */
+  margin-top: 10px; /* Adds a little space between the button and the text */
+}
