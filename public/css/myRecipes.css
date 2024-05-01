@@ -5,7 +5,7 @@ body {
     align-items: center; /* Center vertically */
     min-height: 100vh; /* Full height of the viewport */
     margin: 0;
-    background: linear-gradient(#c0cccb, #89918f);
+    background: white;
     color: black;
     font-family: 'Arial', sans-serif;
 }
