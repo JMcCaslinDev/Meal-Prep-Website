@@ -449,9 +449,7 @@ app.get('/api/week-data', isAuth, async (req, res) => {
     let startDate = moment.tz(`${currentYear}-01-01`, 'YYYY-MM-DD', clientTimezone).week(weekNumber).startOf('isoWeek');
     let endDate = moment(startDate).endOf('isoWeek');
 
-    // Set the time to the very start and very end of the respective days
-    startDate.startOf('day');  // This should already be the case, but ensures no time is included
-    endDate.endOf('day');      // Set to the last moment of the day
+    
 
     // Set the time to the very start and very end of the respective days
     let startDateWithTime = startDate.clone().startOf('day').set({ hour: 0, minute: 0, second: 0 });
@@ -462,8 +460,8 @@ app.get('/api/week-data', isAuth, async (req, res) => {
 
 
     // Convert to UTC for querying the database
-    const startStringUTC = startDateWithTime.utc().format('YYYY-MM-DD HH:mm:ss');
-    const endStringUTC = endDateWithTime.utc().format('YYYY-MM-DD HH:mm:ss');
+    const startStringUTC = startDateWithTime.clone().utc().format('YYYY-MM-DD HH:mm:ss');
+    const endStringUTC = endDateWithTime.clone().utc().format('YYYY-MM-DD HH:mm:ss');
 
     console.log("\nstartStringUTC: ", startStringUTC, "\n");
     console.log("\nendStringUTC: ", endStringUTC, "\n");
