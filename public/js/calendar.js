@@ -98,6 +98,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (data) {
       currentStartDate = data.startString;
       currentEndDate = data.endString;
+      console.log("\ncurrentStartDate: ", currentStartDate, "\n");
+      console.log("\ncurrentEndDate: ", currentEndDate, "\n");
       updateWeekLabel(currentStartDate, currentEndDate);
     }
     return data;
