@@ -455,10 +455,11 @@ app.get('/api/week-data', isAuth, async (req, res) => {
 
     let startDateWithTime =  startDate;
     let endDateWithTime = endDate;
+    console.log("\nstartDateWithTime: ", startDateWithTime, "\n");
 
     startDateWithTime.startOf('day');  // This should already be the case, but ensures no time is included
     endDateWithTime.endOf('day');      // Set to the last moment of the day
-
+    console.log("\nstartDateWithTime.startOf('day'); ", startDateWithTime, "\n")
 
     // Convert to UTC for querying the database
     const startStringUTC = startDateWithTime.utc().format('YYYY-MM-DD HH:mm:ss');
