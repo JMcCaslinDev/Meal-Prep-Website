@@ -444,19 +444,20 @@ app.get('/api/week-data', isAuth, async (req, res) => {
     // Use the session ID to get the user ID
     const userId = await getUserIdFromSessionID(req.sessionID);
 
+    // Correctly set the year to avoid the default '1970' issue
+    const currentYear = new Date().getFullYear();
+
     // Calculate the date range for the requested week number in the user's local timezone
-    const year = new Date().getFullYear(); // Use the current year or a different logic if required
-    let startDate = moment.tz(year, clientTimezone).week(weekNumber).startOf('isoWeek');
+    let startDate = moment.tz(`${currentYear}-01-01`, 'YYYY-MM-DD', clientTimezone).week(weekNumber).startOf('isoWeek');
     let endDate = moment(startDate).endOf('isoWeek');
 
-    // Handle the case when the current date is Sunday
+    // Adjust dates if the current date is Sunday
     if (moment.tz(clientTimezone).day() === 0) {
-      // Adjust start date if it's Sunday, treating it as the start of the new week
-      startDate = moment.tz(year, clientTimezone).week(weekNumber).startOf('isoWeek');
-      endDate = moment(startDate).add(6, 'days').endOf('day');
+      startDate = moment.tz(`${currentYear}-01-01`, 'YYYY-MM-DD', clientTimezone).week(weekNumber + 1).startOf('isoWeek');
+      endDate = moment(startDate).endOf('isoWeek');
     }
 
-    // Convert to string for MySQL in UTC
+    // Convert to string for MySQL in UTC, ensuring the full day is covered
     const startStringUTC = startDate.utc().format('YYYY-MM-DD HH:mm:ss');
     const endStringUTC = endDate.utc().format('YYYY-MM-DD HH:mm:ss');
 
@@ -486,6 +487,7 @@ app.get('/api/week-data', isAuth, async (req, res) => {
     res.status(500).send('Error fetching data for the week.');
   }
 });
+
 
 
 
@@ -533,13 +535,13 @@ app.post('/weekRecipes', isAuth, async (req, res) => {
       await executeSQL('START TRANSACTION');
       console.log("Transaction started");
 
-      // Use the date directly without converting to UTC
-      const startDate = moment(req.body.startDate, 'MM-DD-YYYY').format('YYYY-MM-DD');
-      const endDate = moment(req.body.endDate, 'MM-DD-YYYY').format('YYYY-MM-DD');
+      // Convert start and end dates from the form input to the beginning and end of the day in local timezone, then convert to UTC
+      const startDate = moment.tz(req.body.startDate, 'MM-DD-YYYY', clientTimezone).startOf('day').utc().format('YYYY-MM-DD HH:mm:ss');
+      const endDate = moment.tz(req.body.endDate, 'MM-DD-YYYY', clientTimezone).endOf('day').utc().format('YYYY-MM-DD HH:mm:ss');
       console.log("Processed Dates:", startDate, "to", endDate);
 
       // Delete existing recipes in the meal calendar for the given week and user to prepare for new data
-      let deleteSql = `DELETE FROM mealcalendar WHERE userId = ? AND DATE(timeSlot) BETWEEN ? AND ?`;
+      let deleteSql = `DELETE FROM mealcalendar WHERE userId = ? AND timeSlot BETWEEN ? AND ?`;
       await executeSQL(deleteSql, [userId, startDate, endDate]);
       console.log("Existing meals deleted");
 
