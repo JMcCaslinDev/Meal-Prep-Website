@@ -481,8 +481,8 @@ app.get('/api/week-data', isAuth, async (req, res) => {
     // Return the meal data as JSON with local date formatting
     res.json({
       meals: convertedMeals,
-      startString: startDate.format('MM-DD-YYYY'),
-      endString: endDate.format('MM-DD-YYYY')
+      startString: startDateWithTime.format('MM-DD-YYYY'),
+      endString: endDateWithTime.format('MM-DD-YYYY')
     });
   } catch (error) {
     console.error("Error fetching week data:", error);
