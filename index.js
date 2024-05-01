@@ -427,13 +427,13 @@ app.get('/calendar', isAuth, async (req, res) => {
 
 
 app.get('/api/week-data', isAuth, async (req, res) => {
-  console.log("Entered api/week-data route");
+  console.log("\nEntered api/week-data route\n");
 
   // Extract the week number and timezone from the query parameters
   const weekNumber = parseInt(req.query.week);
   const clientTimezone = req.query.timezone;
 
-  console.log("weekNumber: ", weekNumber);
+  console.log("\nweekNumber: ", weekNumber, "\n");
 
   // Check if the weekNumber is a valid number
   if (isNaN(weekNumber) || weekNumber < 1 || weekNumber > 53) {
@@ -446,8 +446,12 @@ app.get('/api/week-data', isAuth, async (req, res) => {
 
     // Calculate the date range for the requested week number in the user's local timezone
     const currentYear = new Date().getFullYear();
-    let startDate = moment().year(currentYear).week(weekNumber).startOf('isoWeek').tz(clientTimezone);
+    let startDate = moment.tz(`${currentYear}-01-01`, 'YYYY-MM-DD', clientTimezone).week(weekNumber).startOf('isoWeek');
     let endDate = moment(startDate).endOf('isoWeek');
+
+    // Set the time to the very start and very end of the respective days
+    startDate.startOf('day');  // This should already be the case, but ensures no time is included
+    endDate.endOf('day');      // Set to the last moment of the day
 
     // Set the time to the very start and very end of the respective days
     let startDateWithTime = startDate.clone().startOf('day').set({ hour: 0, minute: 0, second: 0 });
@@ -456,12 +460,13 @@ app.get('/api/week-data', isAuth, async (req, res) => {
     console.log("startDateWithTime: ", startDateWithTime.format('YYYY-MM-DD HH:mm:ss'));
     console.log("endDateWithTime: ", endDateWithTime.format('YYYY-MM-DD HH:mm:ss'));
 
+
     // Convert to UTC for querying the database
     const startStringUTC = startDateWithTime.utc().format('YYYY-MM-DD HH:mm:ss');
     const endStringUTC = endDateWithTime.utc().format('YYYY-MM-DD HH:mm:ss');
 
-    console.log("startStringUTC: ", startStringUTC);
-    console.log("endStringUTC: ", endStringUTC);
+    console.log("\nstartStringUTC: ", startStringUTC, "\n");
+    console.log("\nendStringUTC: ", endStringUTC, "\n");
 
     // Fetch meal data for the user within the calculated date range
     const sql = `SELECT * FROM mealcalendar WHERE userId = ? AND timeSlot BETWEEN ? AND ?`;
@@ -473,7 +478,7 @@ app.get('/api/week-data', isAuth, async (req, res) => {
       return meal;
     });
 
-    console.log("Meals: ", convertedMeals);
+    console.log("\nMeals: ", convertedMeals, "\n");
 
     // Return the meal data as JSON with local date formatting
     res.json({
