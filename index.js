@@ -444,20 +444,16 @@ app.get('/api/week-data', isAuth, async (req, res) => {
     // Use the session ID to get the user ID
     const userId = await getUserIdFromSessionID(req.sessionID);
 
-    // Correctly set the year to avoid the default '1970' issue
-    const currentYear = new Date().getFullYear();
-
     // Calculate the date range for the requested week number in the user's local timezone
+    const currentYear = new Date().getFullYear();
     let startDate = moment.tz(`${currentYear}-01-01`, 'YYYY-MM-DD', clientTimezone).week(weekNumber).startOf('isoWeek');
     let endDate = moment(startDate).endOf('isoWeek');
 
-    // Adjust dates if the current date is Sunday
-    if (moment.tz(clientTimezone).day() === 0) {
-      startDate = moment.tz(`${currentYear}-01-01`, 'YYYY-MM-DD', clientTimezone).week(weekNumber + 1).startOf('isoWeek');
-      endDate = moment(startDate).endOf('isoWeek');
-    }
+    // Set the time to the very start and very end of the respective days
+    startDate.startOf('day');  // This should already be the case, but ensures no time is included
+    endDate.endOf('day');      // Set to the last moment of the day
 
-    // Convert to string for MySQL in UTC, ensuring the full day is covered
+    // Convert to UTC for querying the database
     const startStringUTC = startDate.utc().format('YYYY-MM-DD HH:mm:ss');
     const endStringUTC = endDate.utc().format('YYYY-MM-DD HH:mm:ss');
 
@@ -475,8 +471,7 @@ app.get('/api/week-data', isAuth, async (req, res) => {
     });
 
     console.log("\nMeals: ", convertedMeals, "\n");
-    console.log("\nStart Date MM-DD-YYYY", startDate, "\n");
-    
+
     // Return the meal data as JSON with local date formatting
     res.json({
       meals: convertedMeals,
@@ -488,6 +483,7 @@ app.get('/api/week-data', isAuth, async (req, res) => {
     res.status(500).send('Error fetching data for the week.');
   }
 });
+
 
 
 
