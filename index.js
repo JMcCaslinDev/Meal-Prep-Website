@@ -453,8 +453,8 @@ app.get('/api/week-data', isAuth, async (req, res) => {
     startDate.startOf('day');  // This should already be the case, but ensures no time is included
     endDate.endOf('day');      // Set to the last moment of the day
 
-    startDateWithTime =  startDate;
-    endDateWithTime = endDate;
+    let startDateWithTime =  startDate;
+    let endDateWithTime = endDate;
 
     startDateWithTime.startOf('day');  // This should already be the case, but ensures no time is included
     endDateWithTime.endOf('day');      // Set to the last moment of the day
